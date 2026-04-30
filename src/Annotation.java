@@ -11,22 +11,27 @@ public class Annotation {
                       int imageWidth, int imageHeight) {
         this.file = file;
         this.label = label;
-        this.x = x; this.y = y; this.w = w; this.h = h;
-        this.xPixel = xPixel; this.yPixel = yPixel;
-        this.wPixel = wPixel; this.hPixel = hPixel;
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        this.xPixel = xPixel;
+        this.yPixel = yPixel;
+        this.wPixel = wPixel;
+        this.hPixel = hPixel;
         this.imageWidth = imageWidth;
         this.imageHeight = imageHeight;
     }
 
     public String toJson() {
         return String.format(
-            "{\"file\":\"%s\",\"label\":\"%s\"," +
-            "\"x\":%.4f,\"y\":%.4f,\"w\":%.4f,\"h\":%.4f," +
-            "\"x_pixel\":%d,\"y_pixel\":%d,\"w_pixel\":%d,\"h_pixel\":%d," +
-            "\"image_width\":%d,\"image_height\":%d}",
-            file, label, x, y, w, h,
-            xPixel, yPixel, wPixel, hPixel,
-            imageWidth, imageHeight
+                "{\"file\":\"%s\",\"label\":\"%s\"," +
+                        "\"x\":%.4f,\"y\":%.4f,\"w\":%.4f,\"h\":%.4f," +
+                        "\"x_pixel\":%d,\"y_pixel\":%d,\"w_pixel\":%d,\"h_pixel\":%d," +
+                        "\"image_width\":%d,\"image_height\":%d}",
+                file, label, x, y, w, h,
+                xPixel, yPixel, wPixel, hPixel,
+                imageWidth, imageHeight
         );
     }
 }

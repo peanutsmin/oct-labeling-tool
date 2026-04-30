@@ -13,6 +13,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.paint.Color;
 import javafx.scene.input.KeyCode;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +50,10 @@ public class MainApp extends Application {
                     double cx = r.getX() + r.getWidth() / 2;
                     double cy = r.getY() + r.getHeight() / 2;
                     double dist = Math.hypot(e.getX() - cx, e.getY() - cy);
-                    if (dist < minDist) { minDist = dist; target = r; }
+                    if (dist < minDist) {
+                        minDist = dist;
+                        target = r;
+                    }
                 }
                 if (target != null) {
                     int idx = canvas.getRects().indexOf(target);
@@ -98,14 +102,14 @@ public class MainApp extends Application {
             double nh = currentRect.getHeight() / dispH;
             int imgW = (int) canvas.getImageView().getImage().getWidth();
             int imgH = (int) canvas.getImageView().getImage().getHeight();
-            int px = (int)(nx * imgW);
-            int py = (int)(ny * imgH);
-            int pw = (int)(nw * imgW);
-            int ph = (int)(nh * imgH);
+            int px = (int) (nx * imgW);
+            int py = (int) (ny * imgH);
+            int pw = (int) (nw * imgW);
+            int ph = (int) (nh * imgH);
 
             Annotation ann = new Annotation(
-                imageFiles.get(currentIndex).getName(), label,
-                nx, ny, nw, nh, px, py, pw, ph, imgW, imgH
+                    imageFiles.get(currentIndex).getName(), label,
+                    nx, ny, nw, nh, px, py, pw, ph, imgW, imgH
             );
             store.addAnnotation(ann);
             Color color = ImageCanvas.getLabelColor(label);
@@ -121,11 +125,15 @@ public class MainApp extends Application {
         scene.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.RIGHT || e.getCode() == KeyCode.D) {
                 if (currentIndex < imageFiles.size() - 1) {
-                    store.saveCurrent(); currentIndex++; loadImage(currentIndex);
+                    store.saveCurrent();
+                    currentIndex++;
+                    loadImage(currentIndex);
                 }
             } else if (e.getCode() == KeyCode.LEFT || e.getCode() == KeyCode.A) {
                 if (currentIndex > 0) {
-                    store.saveCurrent(); currentIndex--; loadImage(currentIndex);
+                    store.saveCurrent();
+                    currentIndex--;
+                    loadImage(currentIndex);
                 }
             } else if (e.getCode() == KeyCode.DIGIT1) labelBox.getSelectionModel().select(0);
             else if (e.getCode() == KeyCode.DIGIT2) labelBox.getSelectionModel().select(1);
@@ -139,9 +147,9 @@ public class MainApp extends Application {
     private void buildUI() {
         labelBox.getItems().clear();
         labelBox.getItems().addAll(
-            i18n.t("정상", "Normal", "Normal"),
-            i18n.t("의심", "Suspicious", "Verdächtig"),
-            i18n.t("확실히 암", "Confirmed Cancer", "Bestätigter Krebs")
+                i18n.t("정상", "Normal", "Normal"),
+                i18n.t("의심", "Suspicious", "Verdächtig"),
+                i18n.t("확실히 암", "Confirmed Cancer", "Bestätigter Krebs")
         );
         labelBox.getSelectionModel().select(1);
 
@@ -149,8 +157,8 @@ public class MainApp extends Application {
         openBtn.setOnAction(e -> {
             FileChooser fc = new FileChooser();
             fc.getExtensionFilters().add(new FileChooser.ExtensionFilter(
-                i18n.t("이미지", "Images", "Bilder"),
-                "*.png", "*.jpg", "*.JPG", "*.jpeg", "*.JPEG", "*.bmp"
+                    i18n.t("이미지", "Images", "Bilder"),
+                    "*.png", "*.jpg", "*.JPG", "*.jpeg", "*.JPEG", "*.bmp"
             ));
             List<File> files = fc.showOpenMultipleDialog(mainStage);
             if (files != null && !files.isEmpty()) {
@@ -163,12 +171,20 @@ public class MainApp extends Application {
 
         Button prevBtn = new Button(i18n.t("< 이전", "< Prev", "< Zurück"));
         prevBtn.setOnAction(e -> {
-            if (currentIndex > 0) { store.saveCurrent(); currentIndex--; loadImage(currentIndex); }
+            if (currentIndex > 0) {
+                store.saveCurrent();
+                currentIndex--;
+                loadImage(currentIndex);
+            }
         });
 
         Button nextBtn = new Button(i18n.t("다음 >", "Next >", "Weiter >"));
         nextBtn.setOnAction(e -> {
-            if (currentIndex < imageFiles.size() - 1) { store.saveCurrent(); currentIndex++; loadImage(currentIndex); }
+            if (currentIndex < imageFiles.size() - 1) {
+                store.saveCurrent();
+                currentIndex++;
+                loadImage(currentIndex);
+            }
         });
 
         Button saveBtn = new Button(i18n.t("저장", "Save", "Speichern"));
@@ -181,14 +197,23 @@ public class MainApp extends Application {
         Button btnKo = new Button("한국어");
         Button btnEn = new Button("English");
         Button btnDe = new Button("Deutsch");
-        btnKo.setOnAction(e -> { i18n.setLang("ko"); buildUI(); });
-        btnEn.setOnAction(e -> { i18n.setLang("en"); buildUI(); });
-        btnDe.setOnAction(e -> { i18n.setLang("de"); buildUI(); });
+        btnKo.setOnAction(e -> {
+            i18n.setLang("ko");
+            buildUI();
+        });
+        btnEn.setOnAction(e -> {
+            i18n.setLang("en");
+            buildUI();
+        });
+        btnDe.setOnAction(e -> {
+            i18n.setLang("de");
+            buildUI();
+        });
 
         HBox langBar = new HBox(6, btnKo, btnEn, btnDe);
         langBar.setStyle("-fx-padding: 4 8;");
         HBox toolbar = new HBox(8, openBtn, prevBtn, fileLabel, nextBtn,
-                                new Label(i18n.t("라벨:", "Label:", "Label:")), labelBox, saveBtn);
+                new Label(i18n.t("라벨:", "Label:", "Label:")), labelBox, saveBtn);
         toolbar.setStyle("-fx-padding: 8;");
         HBox statusBar = new HBox(20, progressLabel);
         statusBar.setStyle("-fx-padding: 2 8;");
@@ -207,9 +232,9 @@ public class MainApp extends Application {
         }
         if (!imageFiles.isEmpty()) {
             progressLabel.setText((currentIndex + 1) + " / " + imageFiles.size() +
-                "   " + i18n.t("정상: ", "Normal: ", "Normal: ") + n +
-                "  " + i18n.t("의심: ", "Suspicious: ", "Verdächtig: ") + s +
-                "  " + i18n.t("확실히 암: ", "Cancer: ", "Krebs: ") + c);
+                    "   " + i18n.t("정상: ", "Normal: ", "Normal: ") + n +
+                    "  " + i18n.t("의심: ", "Suspicious: ", "Verdächtig: ") + s +
+                    "  " + i18n.t("확실히 암: ", "Cancer: ", "Krebs: ") + c);
         }
     }
 
@@ -224,7 +249,9 @@ public class MainApp extends Application {
             double dispH = dispW / ann.imageWidth * ann.imageHeight;
             Rectangle r = new Rectangle(ann.x * dispW, ann.y * dispH, ann.w * dispW, ann.h * dispH);
             Color color = ImageCanvas.getLabelColor(ann.label);
-            r.setStroke(color); r.setFill(Color.TRANSPARENT); r.setStrokeWidth(2);
+            r.setStroke(color);
+            r.setFill(Color.TRANSPARENT);
+            r.setStrokeWidth(2);
             Text t = new Text(r.getX() + 2, r.getY() - 4, ann.label);
             t.setFill(color);
             canvas.addBox(r, t);
@@ -232,5 +259,7 @@ public class MainApp extends Application {
         updateStats();
     }
 
-    public static void main(String[] args) { launch(args); }
+    public static void main(String[] args) {
+        launch(args);
+    }
 }

@@ -25,7 +25,8 @@ public class ExportService {
             for (ArrayList<Annotation> list : store.getAll().values()) {
                 for (Annotation ann : list) {
                     if (ann.label.equals("정상") || ann.label.equals("Normal")) n++;
-                    else if (ann.label.equals("의심") || ann.label.equals("Suspicious") || ann.label.equals("Verdächtig")) s++;
+                    else if (ann.label.equals("의심") || ann.label.equals("Suspicious") || ann.label.equals("Verdächtig"))
+                        s++;
                     else c++;
                 }
             }

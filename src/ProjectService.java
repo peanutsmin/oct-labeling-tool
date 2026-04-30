@@ -5,10 +5,10 @@ import java.util.ArrayList;
 
 public class ProjectService {
 
-    public static void saveProject(AnnotationStore store, String projectName) {
+    public static void saveProject(AnnotationStore store, String savePath, String projectName) {
         store.saveCurrent();
         try {
-            FileWriter fw = new FileWriter("project.json");
+            FileWriter fw = new FileWriter("savePath");
             String now = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
             fw.write("{\n");
             fw.write("  \"project_name\": \"" + projectName + "\",\n");

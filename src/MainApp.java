@@ -192,7 +192,17 @@ public class MainApp extends Application {
         Button yoloBtn = new Button(i18n.t("YOLO 내보내기", "YOLO Export", "YOLO Export"));
 yoloBtn.setOnAction(e -> ExportService.exportYolo(store));
 Button saveProjectBtn = new Button(i18n.t("프로젝트 저장", "Save Project", "Projekt speichern"));
-saveProjectBtn.setOnAction(e -> ProjectService.saveProject(store, "oct_project"));
+saveProjectBtn.setOnAction(e -> {
+    FileChooser fc = new FileChooser();
+    fc.setTitle(i18n.t("프로젝트 저장", "Save Project", "Projekt speichern"));
+    fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON", "*.json"));
+    fc.setInitialFileName("project.json");
+    File file = fc.showSaveDialog(mainStage);
+    if (file != null) {
+       ProjectService.saveProject(store, file.getAbsolutePath(), "oct_project");
+       
+    }
+});
 
 Button loadProjectBtn = new Button(i18n.t("프로젝트 열기", "Open Project", "Projekt öffnen"));
 loadProjectBtn.setOnAction(e -> {

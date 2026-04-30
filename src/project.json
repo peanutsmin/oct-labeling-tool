@@ -1,0 +1,12 @@
+{
+  "project_name": "oct_project",
+  "created_at": "2026-04-30T23:14:56.579939",
+  "images": [
+    {
+      "file": "/Users/min/Desktop/무제 폴더/다운로드.jpeg",
+      "annotations": [
+        {"file":"다운로드.jpeg","label":"Suspicious","x":0.1813,"y":0.3326,"w":0.2175,"h":0.2478,"x_pixel":54,"y_pixel":55,"w_pixel":65,"h_pixel":41,"image_width":300,"image_height":168}
+      ]
+    }
+  ]
+}

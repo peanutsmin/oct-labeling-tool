@@ -202,6 +202,14 @@ loadProjectBtn.setOnAction(e -> {
     File file = fc.showOpenDialog(mainStage);
     if (file != null) {
         ProjectService.loadProject(store, file.getAbsolutePath());
+        imageFiles = new ArrayList<>(store.getAll().keySet().stream()
+            .map(File::new)
+            .filter(File::exists)
+            .toList());
+        if (!imageFiles.isEmpty()) {
+            currentIndex = 0;
+            loadImage(currentIndex);
+        }
     }
 });
         fileLabel = new Label(i18n.t("이미지 없음", "No image", "Kein Bild"));

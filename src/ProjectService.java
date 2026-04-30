@@ -10,19 +10,16 @@ public class ProjectService {
         try {
             FileWriter fw = new FileWriter("project.json");
             String now = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-
             fw.write("{\n");
             fw.write("  \"project_name\": \"" + projectName + "\",\n");
             fw.write("  \"created_at\": \"" + now + "\",\n");
             fw.write("  \"images\": [\n");
-
             boolean firstImage = true;
             for (java.util.Map.Entry<String, ArrayList<Annotation>> entry : store.getAll().entrySet()) {
                 if (!firstImage) fw.write(",\n");
                 fw.write("    {\n");
                 fw.write("      \"file\": \"" + entry.getKey() + "\",\n");
                 fw.write("      \"annotations\": [\n");
-
                 boolean firstAnn = true;
                 for (Annotation ann : entry.getValue()) {
                     if (!firstAnn) fw.write(",\n");
@@ -33,7 +30,6 @@ public class ProjectService {
                 fw.write("    }");
                 firstImage = false;
             }
-
             fw.write("\n  ]\n}");
             fw.close();
             System.out.println("프로젝트 저장 완료! project.json");
@@ -50,57 +46,61 @@ public class ProjectService {
             while ((line = br.readLine()) != null) sb.append(line).append("\n");
             br.close();
 
-            String content = sb.toString();
             store.clear();
+            String content = sb.toString();
 
-            String[] imageBlocks = content.split("\\{\\s*\"file\":");
+            // file 경로 추출
+            java.util.regex.Pattern filePattern = java.util.regex.Pattern.compile("\"file\":\\s*\"([^\"]+)\"");
+            java.util.regex.Pattern labelPattern = java.util.regex.Pattern.compile("\"label\":\\s*\"([^\"]+)\"");
+            java.util.regex.Pattern xPattern = java.util.regex.Pattern.compile("\"x\":\\s*([0-9.]+)");
+            java.util.regex.Pattern yPattern = java.util.regex.Pattern.compile("\"y\":\\s*([0-9.]+)");
+            java.util.regex.Pattern wPattern = java.util.regex.Pattern.compile("\"w\":\\s*([0-9.]+)");
+            java.util.regex.Pattern hPattern = java.util.regex.Pattern.compile("\"h\":\\s*([0-9.]+)");
+            java.util.regex.Pattern xpPattern = java.util.regex.Pattern.compile("\"x_pixel\":\\s*([0-9]+)");
+            java.util.regex.Pattern ypPattern = java.util.regex.Pattern.compile("\"y_pixel\":\\s*([0-9]+)");
+            java.util.regex.Pattern wpPattern = java.util.regex.Pattern.compile("\"w_pixel\":\\s*([0-9]+)");
+            java.util.regex.Pattern hpPattern = java.util.regex.Pattern.compile("\"h_pixel\":\\s*([0-9]+)");
+            java.util.regex.Pattern iwPattern = java.util.regex.Pattern.compile("\"image_width\":\\s*([0-9]+)");
+            java.util.regex.Pattern ihPattern = java.util.regex.Pattern.compile("\"image_height\":\\s*([0-9]+)");
+
+            // 이미지 블록별로 파싱
+            String[] imageBlocks = content.split("\\{\\s*\\n\\s*\"file\":");
             for (int i = 1; i < imageBlocks.length; i++) {
-                String block = imageBlocks[i];
-                String filePath = block.split("\"")[1];
+                String block = "\"file\":" + imageBlocks[i];
+                java.util.regex.Matcher fm = filePattern.matcher(block);
+                if (!fm.find()) continue;
+                String filePath = fm.group(1);
 
-                String[] annParts = block.split("\\{\"file\":\"" + filePath.replace("/", "\\/") + "\"");
-                String annSection = block;
-
-                String[] annBlocks = annSection.split("\\{\"file\":\"[^\"]+\",\"label\":");
                 ArrayList<Annotation> anns = new ArrayList<>();
-
-                for (int j = 1; j < annBlocks.length; j++) {
+                // annotation 블록 파싱
+                String[] annParts = block.split("\\{\"file\":");
+                for (int j = 1; j < annParts.length; j++) {
+                    String ap = "{\"file\":" + annParts[j].split("\\}")[0] + "}";
                     try {
-                        String annBlock = "{\"file\":\"x\",\"label\":" + annBlocks[j];
-                        annBlock = annBlock.split("\\}")[0] + "}";
-                        String[] parts = annBlock.replace("{", "").replace("}", "").replace("\"", "").split(",");
-                        String label = "";
-                        double x = 0, y = 0, w = 0, h = 0;
-                        int xp = 0, yp = 0, wp = 0, hp = 0, iw = 1, ih = 1;
-                        for (String part : parts) {
-                            String[] kv = part.split(":");
-                            if (kv.length < 2) continue;
-                            String k = kv[0].trim(), v = kv[1].trim();
-                            switch (k) {
-                                case "label" -> label = v;
-                                case "x" -> x = Double.parseDouble(v);
-                                case "y" -> y = Double.parseDouble(v);
-                                case "w" -> w = Double.parseDouble(v);
-                                case "h" -> h = Double.parseDouble(v);
-                                case "x_pixel" -> xp = Integer.parseInt(v);
-                                case "y_pixel" -> yp = Integer.parseInt(v);
-                                case "w_pixel" -> wp = Integer.parseInt(v);
-                                case "h_pixel" -> hp = Integer.parseInt(v);
-                                case "image_width" -> iw = Integer.parseInt(v);
-                                case "image_height" -> ih = Integer.parseInt(v);
-                            }
-                        }
-                        if (!label.isEmpty()) {
-                            anns.add(new Annotation(new File(filePath).getName(), label, x, y, w, h, xp, yp, wp, hp, iw, ih));
-                        }
+                        String label = extract(labelPattern, ap);
+                        double x = Double.parseDouble(extract(xPattern, ap));
+                        double y = Double.parseDouble(extract(yPattern, ap));
+                        double w = Double.parseDouble(extract(wPattern, ap));
+                        double h = Double.parseDouble(extract(hPattern, ap));
+                        int xp = Integer.parseInt(extract(xpPattern, ap));
+                        int yp = Integer.parseInt(extract(ypPattern, ap));
+                        int wp = Integer.parseInt(extract(wpPattern, ap));
+                        int hp = Integer.parseInt(extract(hpPattern, ap));
+                        int iw = Integer.parseInt(extract(iwPattern, ap));
+                        int ih = Integer.parseInt(extract(ihPattern, ap));
+                        anns.add(new Annotation(new File(filePath).getName(), label, x, y, w, h, xp, yp, wp, hp, iw, ih));
                     } catch (Exception ignored) {}
                 }
-
                 store.getAll().put(filePath, anns);
             }
-            System.out.println("프로젝트 불러오기 완료!");
+            System.out.println("프로젝트 불러오기 완료! 이미지 수: " + store.getAll().size());
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static String extract(java.util.regex.Pattern p, String text) {
+        java.util.regex.Matcher m = p.matcher(text);
+        return m.find() ? m.group(1) : "";
     }
 }

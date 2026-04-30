@@ -2,3 +2,5 @@
 *.class
 src/*.class
 .idea/
+labels.json
+summary.json

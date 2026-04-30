@@ -88,7 +88,13 @@ Während einer Vorlesung über Früherkennung von Lungenkrebs erfuhr ich, dass p
 ## 한국어
 
 ### 배경
-폐암 조기 진단 강의에서 저선량 CT 스크리닝으로 발견된 말초 폐 병변은 기존 기관지내시경으로 생검하기 극히 어렵다는 것을 배웠습니다. 광학 생검(OCT 기반)은 방사선 부담이 없는 미래 진단 기술로 주목받고 있습니다. CVAT, Label Studio 같은 범용 라벨링 툴은 존재하지만, 폐 OCT 병변 라벨링에 특화된 가벼운 데스크톱 툴을 실험적으로 구현했습니다. AI 학습용 데이터셋 구축의 첫 단계로 이 툴을 직접 제작했습니다. 현재는 MVP 단계이며, 향후 YOLO/COCO export, mask annotation, DICOM support, project reload 기능을 추가할 예정입니다.
+### 배경
+
+폐암 조기 진단 강의에서 저선량 CT 스크리닝으로 발견된 말초 폐 병변은 기존 기관지내시경으로 생검하기 극히 어렵다는 것을 배웠습니다.
+
+광학 생검(OCT 기반)은 방사선 부담이 없는 미래 진단 기술로 주목받고 있습니다. CVAT, Label Studio 같은 범용 라벨링 툴은 존재하지만, 폐 OCT 병변 라벨링에 특화된 가벼운 데스크톱 툴을 실험적으로 구현했습니다.
+
+AI 학습용 데이터셋 구축의 첫 단계로 이 툴을 직접 제작했습니다. 현재는 MVP 단계이며, 향후 YOLO/COCO export, mask annotation, DICOM support, project reload 기능을 추가할 예정입니다.
 
 ### 기능
 - 여러 장 이미지 선택 (jpg, jpeg, png, bmp)

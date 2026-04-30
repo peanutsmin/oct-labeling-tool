@@ -7,7 +7,7 @@
 ## English
 
 ### Background
-During a medical imaging lecture on early lung cancer detection, I learned that peripheral lung lesions found via low-dose CT screening are extremely difficult to biopsy using conventional bronchoscopy. Optical biopsy (OCT-based) is emerging as a radiation-free future solution — but **no dedicated labeling tool exists for lung OCT images**. I built this tool as a first step toward creating labeled datasets for AI model training.
+During a medical imaging lecture on early lung cancer detection, I learned that peripheral lung lesions found via low-dose CT screening are extremely difficult to biopsy using conventional bronchoscopy. Optical biopsy (OCT-based) is emerging as a radiation-free future solution. While general tools like CVAT and Label Studio exist, no lightweight desktop tool specialized for lung OCT lesion annotation was available. I built this as an experimental MVP — with plans to add YOLO/COCO export, mask annotation, DICOM support, and project reload.
 
 ### What I Built
 A lightweight desktop tool for annotating lung OCT images, designed to generate labeled datasets for future AI training.
@@ -50,7 +50,7 @@ java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.contr
 ## Deutsch
 
 ### Hintergrund
-Während einer Vorlesung über Früherkennung von Lungenkrebs erfuhr ich, dass periphere Lungenläsionen, die im Low-dose-CT-Screening entdeckt werden, mit konventioneller Bronchoskopie extrem schwer zu biopsieren sind. Optische Biopsie (OCT-basiert) gilt als strahlungsfreie Zukunftslösung — aber **es existierte kein dediziertes Annotierungswerkzeug für Lungen-OCT-Bilder**. Als ersten Schritt zur Erstellung annotierter Datensätze für das KI-Training habe ich dieses Tool selbst entwickelt.
+Während einer Vorlesung über Früherkennung von Lungenkrebs erfuhr ich, dass periphere Lungenläsionen, die im Low-dose-CT-Screening entdeckt werden, mit konventioneller Bronchoskopie extrem schwer zu biopsieren sind. Optische Biopsie (OCT-basiert) gilt als strahlungsfreie Zukunftslösung. Obwohl allgemeine Tools wie CVAT und Label Studio existieren, fehlte ein leichtgewichtiges Desktop-Tool speziell für Lungen-OCT-Läsionsannotation. Dieses Tool wurde als experimentelle MVP-Implementierung entwickelt — mit geplanten Erweiterungen: YOLO/COCO-Export, Mask-Annotation, DICOM-Unterstützung und Projekt-Reload.
 
 ### Funktionen
 - Mehrere Bilder laden (jpg, jpeg, png, bmp)
@@ -69,7 +69,7 @@ Während einer Vorlesung über Früherkennung von Lungenkrebs erfuhr ich, dass p
 ## 한국어
 
 ### 배경
-폐암 조기 진단 강의에서 저선량 CT 스크리닝으로 발견된 말초 폐 병변은 기존 기관지내시경으로 생검하기 극히 어렵다는 것을 배웠습니다. 광학 생검(OCT 기반)이 방사선 없는 미래 솔루션으로 주목받고 있지만, **폐 OCT 영상 전용 라벨링 툴은 존재하지 않았습니다. AI 학습용 데이터셋 구축의 첫 단계로 이 툴을 직접 제작했습니다.**
+폐암 조기 진단 강의에서 저선량 CT 스크리닝으로 발견된 말초 폐 병변은 기존 기관지내시경으로 생검하기 극히 어렵다는 것을 배웠습니다. 광학 생검(OCT 기반)이 방사선 없는 미래 솔루션으로 주목받고 있지만, ** CVAT, Label Studio 같은 범용 툴은 있지만, 폐 OCT 병변 라벨링에 특화된 가벼운 데스크톱 툴을 실험적으로 구현했습니다. 현재 MVP 단계이며, 향후 YOLO/COCO export, mask annotation, DICOM support, project reload 기능을 추가할 예정입니다. AI 학습용 데이터셋 구축의 첫 단계로 이 툴을 직접 제작했습니다.**
 
 ### 기능
 - 여러 장 이미지 선택 (jpg, jpeg, png, bmp)

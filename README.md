@@ -42,18 +42,18 @@ A lightweight desktop tool for annotating lung OCT images, designed to generate 
 
 ### Compile
 ```bash
-javac --module-path /path/to/javafx/lib --add-modules javafx.controls OctViewer.java
+javac --module-path /path/to/javafx/lib --add-modules javafx.controls src/*.java
 ```
 
 ### Run
 ```bash
-java --module-path /path/to/javafx/lib --add-modules javafx.controls OctViewer
+java --module-path /path/to/javafx/lib --add-modules javafx.controls -cp src MainApp
 ```
 
 ### macOS example
 ```bash
-javac --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.controls OctViewer.java
-java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.controls OctViewer
+javac --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.controls src/*.java
+java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.controls -cp src MainApp
 ```
 
 ### Export format example
@@ -97,7 +97,6 @@ Dieses Tool wurde als experimentelle MVP-Implementierung entwickelt — mit gepl
 
 ## 한국어
 
-### 배경
 ### 배경
 
 폐암 조기 진단 강의에서 저선량 CT 스크리닝으로 발견된 말초 폐 병변은 기존 기관지내시경으로 생검하기 매우 어렵다는 것을 배웠습니다.

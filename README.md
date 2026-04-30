@@ -84,6 +84,14 @@ mvn javafx:run
 4. Save project as `project.json` for future sessions
 5. Reopen project to continue or correct annotations
 6. Export as JSON or YOLO format for AI training
+
+## Limitations
+
+- This tool is an experimental MVP and is not intended for clinical diagnosis.
+- It currently supports bounding-box annotation only.
+- DICOM support and mask-based annotation are planned for future versions.
+- Coordinate accuracy depends on display scaling and may vary across screen resolutions.
+
 ---
 
 ## Deutsch
@@ -119,6 +127,12 @@ Dieses Tool wurde als experimentelle MVP-Implementierung entwickelt — Das Tool
 4. Projekt als `project.json` speichern
 5. Projekt erneut öffnen und Annotationen korrigieren
 6. Als JSON oder YOLO-Format exportieren
+
+## Einschränkungen
+
+- Dieses Tool ist ein experimentelles MVP und nicht für klinische Diagnosen geeignet.
+- Aktuell wird nur Bounding-Box-Annotation unterstützt.
+- DICOM-Unterstützung und maskenbasierte Annotation sind für zukünftige Versionen geplant.
 
 ---
 
@@ -157,3 +171,11 @@ AI 학습용 데이터셋 구축의 첫 단계로 이 툴을 직접 제작했습
 4. `project.json`으로 프로젝트 저장
 5. 나중에 프로젝트 열어서 수정
 6. JSON 또는 YOLO 형식으로 export
+
+## 한계 및 주의사항
+
+- 이 툴은 실험적 MVP이며 임상 진단 목적으로 사용할 수 없습니다.
+- 현재 bounding-box 방식의 annotation만 지원합니다.
+- DICOM 지원 및 mask 기반 annotation은 향후 추가 예정입니다.
+
+

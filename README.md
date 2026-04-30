@@ -29,6 +29,22 @@ A lightweight desktop tool for annotating lung OCT images, designed to generate 
 - Java 21
 - JavaFX 21
 
+## How to Run
+
+**Requirements**
+- Java 21
+- JavaFX 21 SDK ([Download](https://gluonhq.com/products/javafx/))
+
+**Compile**
+javac --module-path /path/to/javafx/lib --add-modules javafx.controls OctViewer.java
+
+**Run**
+java --module-path /path/to/javafx/lib --add-modules javafx.controls OctViewer
+
+**macOS example**
+javac --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.controls OctViewer.java
+java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.controls OctViewer
+
 ---
 
 ## Deutsch

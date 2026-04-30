@@ -69,6 +69,10 @@ java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.contr
   "image_height": 168
 }
 ```
+### Run with Maven
+```bash
+mvn javafx:run
+```
 ---
 
 ## Deutsch

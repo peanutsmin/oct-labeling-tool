@@ -189,6 +189,8 @@ public class MainApp extends Application {
 
         Button saveBtn = new Button(i18n.t("저장", "Save", "Speichern"));
         saveBtn.setOnAction(e -> ExportService.exportLabels(store));
+        Button yoloBtn = new Button(i18n.t("YOLO 내보내기", "YOLO Export", "YOLO Export"));
+yoloBtn.setOnAction(e -> ExportService.exportYolo(store));
 
         fileLabel = new Label(i18n.t("이미지 없음", "No image", "Kein Bild"));
         progressLabel = new Label("");
@@ -213,7 +215,7 @@ public class MainApp extends Application {
         HBox langBar = new HBox(6, btnKo, btnEn, btnDe);
         langBar.setStyle("-fx-padding: 4 8;");
         HBox toolbar = new HBox(8, openBtn, prevBtn, fileLabel, nextBtn,
-                new Label(i18n.t("라벨:", "Label:", "Label:")), labelBox, saveBtn);
+                new Label(i18n.t("라벨:", "Label:", "Label:")), labelBox, saveBtn, yoloBtn);
         toolbar.setStyle("-fx-padding: 8;");
         HBox statusBar = new HBox(20, progressLabel);
         statusBar.setStyle("-fx-padding: 2 8;");

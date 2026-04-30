@@ -12,7 +12,7 @@ During a medical imaging lecture on early lung cancer detection, I learned that 
 ### What I Built
 A lightweight desktop tool for annotating lung OCT images, designed to generate labeled datasets for future AI training.
 
-
+![Screenshot](screenshot.png)
 
 ### Features
 - Load multiple images (jpg, jpeg, png, bmp)

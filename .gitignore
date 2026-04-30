@@ -1,11 +1,9 @@
 *.class
-*.class
 src/*.class
 .idea/
+.DS_Store
 labels.json
 summary.json
 labels_yolo/
 project.json
-labels.json
-summary.json
 target/

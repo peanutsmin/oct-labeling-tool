@@ -58,36 +58,17 @@ java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.contr
 
 ### Export format example
 ```json
-[
-  {
-    "file": "sample_oct.png",
-    "label": "Suspicious",
-    "x": 0.2143,
-    "y": 0.3512,
-    "w": 0.1820,
-    "h": 0.0960,
-    "x_pixel": 219,
-    "y_pixel": 269,
-    "w_pixel": 186,
-    "h_pixel": 73,
-    "image_width": 1024,
-    "image_height": 768
-  },
-  {
-    "file": "sample_oct.png",
-    "label": "Confirmed Cancer",
-    "x": 0.5821,
-    "y": 0.4103,
-    "w": 0.0921,
-    "h": 0.0643,
-    "x_pixel": 596,
-    "y_pixel": 315,
-    "w_pixel": 94,
-    "h_pixel": 49,
-    "image_width": 1024,
-    "image_height": 768
-  }
-]
+{
+  "file": "image.jpeg",
+  "label": "Suspicious",
+  "x": 0.2425,
+  "y": 0.1897,
+  "x_pixel": 72,
+  "y_pixel": 31,
+  "image_width": 300,
+  "image_height": 168
+}
+```
 ---
 
 ## Deutsch

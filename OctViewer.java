@@ -23,6 +23,15 @@ import java.util.List;
 
 public class OctViewer extends Application {
 
+    // 언어 설정
+    private String lang = "en";
+
+    private String t(String ko, String en, String de) {
+        if (lang.equals("ko")) return ko;
+        if (lang.equals("de")) return de;
+        return en;
+    }
+
     private double startX, startY;
     private Rectangle currentRect;
     private String currentFile = "";
@@ -33,23 +42,28 @@ public class OctViewer extends Application {
     private List<File> imageFiles = new ArrayList<>();
     private int currentIndex = 0;
     private Label fileLabel;
-    private Label statsLabel;
     private Label progressLabel;
-    private ImageView imageView;
-    private Pane canvas;
     private ComboBox<String> labelBox;
+    private Button openBtn, prevBtn, nextBtn, saveBtn;
+    private Label labelTitle;
+    private HBox toolbar;
+    private Scene scene;
+    private Stage mainStage;
+    private Pane canvas;
+    private ImageView imageView;
 
     @Override
     public void start(Stage stage) {
+        this.mainStage = stage;
         BorderPane root = new BorderPane();
         imageView = new ImageView();
         imageView.setPreserveRatio(true);
         imageView.setFitWidth(800);
         canvas = new Pane(imageView);
+        canvas.setFocusTraversable(true);
 
         labelBox = new ComboBox<>();
-        labelBox.getItems().addAll("정상", "의심", "확실히 암");
-        labelBox.setValue("의심");
+        updateLanguage(root);
 
         canvas.setOnMousePressed(e -> {
             canvas.requestFocus();
@@ -94,7 +108,7 @@ public class OctViewer extends Application {
 
         canvas.setOnMouseReleased(e -> {
             if (e.isSecondaryButtonDown() || currentRect == null) return;
-            if (currentRect.getWidth() < 5 || currentRect.getHeight() <5) {
+            if (currentRect.getWidth() < 5 || currentRect.getHeight() < 5) {
                 canvas.getChildren().remove(currentRect);
                 currentRect = null;
                 return;
@@ -112,27 +126,64 @@ public class OctViewer extends Application {
             );
             currentLabels.add(entry);
             rects.add(currentRect);
-            Color color = label.equals("정상") ? Color.GREEN :
-                          label.equals("의심") ? Color.ORANGE : Color.RED;
+            Color color = getLabelColor(label);
             currentRect.setStroke(color);
-            Text t = new Text(currentRect.getX() + 2, currentRect.getY() - 4, label);
-            t.setFill(color);
-            texts.add(t);
-            canvas.getChildren().add(t);
+            Text txt = new Text(currentRect.getX() + 2, currentRect.getY() - 4, label);
+            txt.setFill(color);
+            texts.add(txt);
+            canvas.getChildren().add(txt);
             currentRect = null;
             updateStats();
         });
 
         root.setCenter(canvas);
 
-        Button openBtn = new Button("이미지 선택");
+        scene = new Scene(root, 800, 640);
+        scene.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.RIGHT || e.getCode() == KeyCode.D) {
+                if (currentIndex < imageFiles.size() - 1) {
+                    saveCurrentLabels(); currentIndex++; loadImage(currentIndex);
+                }
+            } else if (e.getCode() == KeyCode.LEFT || e.getCode() == KeyCode.A) {
+                if (currentIndex > 0) {
+                    saveCurrentLabels(); currentIndex--; loadImage(currentIndex);
+                }
+            } else if (e.getCode() == KeyCode.DIGIT1) {
+                labelBox.getSelectionModel().select(0);
+            } else if (e.getCode() == KeyCode.DIGIT2) {
+                labelBox.getSelectionModel().select(1);
+            } else if (e.getCode() == KeyCode.DIGIT3) {
+                labelBox.getSelectionModel().select(2);
+            }
+        });
+
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    private Color getLabelColor(String label) {
+        if (label.equals("정상") || label.equals("Normal") || label.equals("Normal (DE)")) return Color.GREEN;
+        if (label.equals("의심") || label.equals("Suspicious") || label.equals("Verdächtig")) return Color.ORANGE;
+        return Color.RED;
+    }
+
+    private void updateLanguage(BorderPane root) {
+        labelBox.getItems().clear();
+        labelBox.getItems().addAll(
+            t("정상", "Normal", "Normal"),
+            t("의심", "Suspicious", "Verdächtig"),
+            t("확실히 암", "Confirmed Cancer", "Bestätigter Krebs")
+        );
+        labelBox.getSelectionModel().select(1);
+
+        openBtn = new Button(t("이미지 선택", "Open Images", "Bilder öffnen"));
         openBtn.setOnAction(e -> {
             FileChooser fc = new FileChooser();
-            fc.setTitle("이미지 선택 (여러 장 가능)");
+            fc.setTitle(t("이미지 선택", "Select Images", "Bilder auswählen"));
             fc.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("이미지", "*.png", "*.jpg", "*.JPG", "*.jpeg", "*.JPEG", "*.bmp")
+                new FileChooser.ExtensionFilter(t("이미지", "Images", "Bilder"), "*.png", "*.jpg", "*.JPG", "*.jpeg", "*.JPEG", "*.bmp")
             );
-            List<File> files = fc.showOpenMultipleDialog(stage);
+            List<File> files = fc.showOpenMultipleDialog(mainStage);
             if (files != null && !files.isEmpty()) {
                 imageFiles = files;
                 currentIndex = 0;
@@ -141,32 +192,17 @@ public class OctViewer extends Application {
             }
         });
 
-        Button prevBtn = new Button("< 이전");
+        prevBtn = new Button(t("< 이전", "< Prev", "< Zurück"));
         prevBtn.setOnAction(e -> {
-            if (currentIndex > 0) {
-                saveCurrentLabels();
-                currentIndex--;
-                loadImage(currentIndex);
-            }
+            if (currentIndex > 0) { saveCurrentLabels(); currentIndex--; loadImage(currentIndex); }
         });
 
-        Button nextBtn = new Button("다음 >");
+        nextBtn = new Button(t("다음 >", "Next >", "Weiter >"));
         nextBtn.setOnAction(e -> {
-            if (currentIndex < imageFiles.size() - 1) {
-                saveCurrentLabels();
-                currentIndex++;
-                loadImage(currentIndex);
-            }
+            if (currentIndex < imageFiles.size() - 1) { saveCurrentLabels(); currentIndex++; loadImage(currentIndex); }
         });
 
-        fileLabel = new Label("이미지 없음");
-        progressLabel = new Label("");
-        progressLabel.setStyle("-fx-text-fill: steelblue; -fx-font-weight: bold;");
-
-        statsLabel = new Label("");
-        statsLabel.setStyle("-fx-text-fill: gray; -fx-font-size: 11;");
-
-        Button saveBtn = new Button("저장");
+        saveBtn = new Button(t("저장", "Save", "Speichern"));
         saveBtn.setOnAction(e -> {
             saveCurrentLabels();
             try {
@@ -184,84 +220,74 @@ public class OctViewer extends Application {
                 fw.close();
 
                 int total = savedLabels.values().stream().mapToInt(List::size).sum();
-                int totalNormal = 0, totalSuspect = 0, totalCancer = 0;
+                int n = 0, s = 0, c = 0;
                 for (ArrayList<String> list : savedLabels.values()) {
                     for (String lbl : list) {
-                        if (lbl.contains("정상")) totalNormal++;
-                        else if (lbl.contains("의심")) totalSuspect++;
-                        else if (lbl.contains("확실히 암")) totalCancer++;
+                        if (lbl.contains("정상") || lbl.contains("Normal")) n++;
+                        else if (lbl.contains("의심") || lbl.contains("Suspicious") || lbl.contains("Verdächtig")) s++;
+                        else c++;
                     }
                 }
-
                 FileWriter sw = new FileWriter("summary.json");
-                sw.write("{\n");
-                sw.write("  \"summary\": {\n");
+                sw.write("{\n  \"summary\": {\n");
                 sw.write("    \"total_images\": " + savedLabels.size() + ",\n");
                 sw.write("    \"total_labels\": " + total + ",\n");
-                sw.write("    \"정상\": " + totalNormal + ",\n");
-                sw.write("    \"의심\": " + totalSuspect + ",\n");
-                sw.write("    \"확실히_암\": " + totalCancer + "\n");
+                sw.write("    \"normal\": " + n + ",\n");
+                sw.write("    \"suspicious\": " + s + ",\n");
+                sw.write("    \"confirmed_cancer\": " + c + "\n");
                 sw.write("  }\n}");
                 sw.close();
-                System.out.println("저장 완료! 총 " + total + "개 라벨");
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
+                System.out.println(t("저장 완료! 총 ", "Saved! Total ", "Gespeichert! Gesamt ") + total);
+            } catch (Exception ex) { ex.printStackTrace(); }
         });
 
-        HBox toolbar = new HBox(10, openBtn, prevBtn, fileLabel, nextBtn,
-                                new Label("라벨:"), labelBox, saveBtn);
+        fileLabel = new Label(t("이미지 없음", "No image", "Kein Bild"));
+        progressLabel = new Label("");
+        progressLabel.setStyle("-fx-text-fill: steelblue; -fx-font-weight: bold;");
+
+        // 언어 버튼
+        Button btnKo = new Button("한국어");
+        Button btnEn = new Button("English");
+        Button btnDe = new Button("Deutsch");
+
+        btnKo.setOnAction(e -> { lang = "ko"; updateLanguage(root); });
+        btnEn.setOnAction(e -> { lang = "en"; updateLanguage(root); });
+        btnDe.setOnAction(e -> { lang = "de"; updateLanguage(root); });
+
+        labelTitle = new Label(t("라벨:", "Label:", "Label:"));
+
+        HBox langBar = new HBox(6, btnKo, btnEn, btnDe);
+        langBar.setStyle("-fx-padding: 4 8;");
+
+        toolbar = new HBox(8, openBtn, prevBtn, fileLabel, nextBtn,
+                           labelTitle, labelBox, saveBtn);
         toolbar.setStyle("-fx-padding: 8;");
 
-        HBox statusBar = new HBox(20, progressLabel, statsLabel);
-        statusBar.setStyle("-fx-padding: 4 8;");
+        HBox statusBar = new HBox(20, progressLabel);
+        statusBar.setStyle("-fx-padding: 2 8;");
 
-        VBox top = new VBox(toolbar, statusBar);
+        VBox top = new VBox(langBar, toolbar, statusBar);
         root.setTop(top);
 
-        Scene scene = new Scene(root, 800, 620);
-
-        // 단축키
-        canvas.setFocusTraversable(true);
-        scene.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.RIGHT || e.getCode() == KeyCode.D) {
-                if (currentIndex < imageFiles.size() - 1) {
-                    saveCurrentLabels();
-                    currentIndex++;
-                    loadImage(currentIndex);
-                }
-            } else if (e.getCode() == KeyCode.LEFT || e.getCode() == KeyCode.A) {
-                if (currentIndex > 0) {
-                    saveCurrentLabels();
-                    currentIndex--;
-                    loadImage(currentIndex);
-                }
-            } else if (e.getCode() == KeyCode.DIGIT1) {
-                labelBox.setValue("정상");
-            } else if (e.getCode() == KeyCode.DIGIT2) {
-                labelBox.setValue("의심");
-            } else if (e.getCode() == KeyCode.DIGIT3) {
-                labelBox.setValue("확실히 암");
-            }
-        });
-
-        stage.setTitle("OCT Labeling Tool");
-        stage.setScene(scene);
-        stage.show();
+        if (mainStage != null) {
+            mainStage.setTitle(t("OCT 라벨링 툴", "OCT Labeling Tool", "OCT Beschriftungswerkzeug"));
+        }
     }
 
     private void updateStats() {
-        int normal = 0, suspect = 0, cancer = 0;
+        int n = 0, s = 0, c = 0;
         for (String entry : currentLabels) {
-            if (entry.contains("정상")) normal++;
-            else if (entry.contains("의심")) suspect++;
-            else if (entry.contains("확실히 암")) cancer++;
+            if (entry.contains("정상") || entry.contains("Normal")) n++;
+            else if (entry.contains("의심") || entry.contains("Suspicious") || entry.contains("Verdächtig")) s++;
+            else c++;
         }
-        statsLabel.setText("현재 이미지 — 정상: " + normal + "  의심: " + suspect + "  확실히 암: " + cancer);
-
+        String stats = t(
+            "정상: " + n + "  의심: " + s + "  확실히 암: " + c,
+            "Normal: " + n + "  Suspicious: " + s + "  Cancer: " + c,
+            "Normal: " + n + "  Verdächtig: " + s + "  Krebs: " + c
+        );
         if (!imageFiles.isEmpty()) {
-            int done = savedLabels.size();
-            progressLabel.setText("진행: " + (currentIndex + 1) + " / " + imageFiles.size() + "장");
+            progressLabel.setText((currentIndex + 1) + " / " + imageFiles.size() + "   " + stats);
         }
     }
 
@@ -274,42 +300,33 @@ public class OctViewer extends Application {
     private void loadImage(int index) {
         canvas.getChildren().removeAll(rects);
         canvas.getChildren().removeAll(texts);
-        rects.clear();
-        texts.clear();
-        currentLabels.clear();
+        rects.clear(); texts.clear(); currentLabels.clear();
         File file = imageFiles.get(index);
         currentFile = file.getName();
         imageView.setImage(new Image(file.toURI().toString()));
         fileLabel.setText(currentFile);
-
         if (savedLabels.containsKey(currentFile)) {
             for (String entry : savedLabels.get(currentFile)) {
                 String[] parts = entry.replace("{","").replace("}","").replace("\"","").split(",");
-                double x = 0, y = 0, w = 0, h = 0;
-                String lbl = "의심";
+                double x = 0, y = 0, w = 0, h = 0; String lbl = "Suspicious";
                 for (String part : parts) {
                     String[] kv = part.split(":");
                     if (kv.length < 2) continue;
-                    String key = kv[0].trim();
-                    String val = kv[1].trim();
+                    String key = kv[0].trim(), val = kv[1].trim();
                     if (key.equals("label")) lbl = val;
-                    if (key.equals("x")) x = Double.parseDouble(val);
-                    if (key.equals("y")) y = Double.parseDouble(val);
-                    if (key.equals("w")) w = Double.parseDouble(val);
-                    if (key.equals("h")) h = Double.parseDouble(val);
+                    else if (key.equals("x")) x = Double.parseDouble(val);
+                    else if (key.equals("y")) y = Double.parseDouble(val);
+                    else if (key.equals("w")) w = Double.parseDouble(val);
+                    else if (key.equals("h")) h = Double.parseDouble(val);
                 }
                 double dispW = imageView.getFitWidth();
                 double dispH = dispW / imageView.getImage().getWidth() * imageView.getImage().getHeight();
                 Rectangle r = new Rectangle(x * dispW, y * dispH, w * dispW, h * dispH);
-                Color color = lbl.equals("정상") ? Color.GREEN :
-                              lbl.equals("의심") ? Color.ORANGE : Color.RED;
-                r.setStroke(color);
-                r.setFill(Color.TRANSPARENT);
-                r.setStrokeWidth(2);
+                Color color = getLabelColor(lbl);
+                r.setStroke(color); r.setFill(Color.TRANSPARENT); r.setStrokeWidth(2);
                 Text t = new Text(r.getX() + 2, r.getY() - 4, lbl);
                 t.setFill(color);
-                rects.add(r);
-                texts.add(t);
+                rects.add(r); texts.add(t);
                 canvas.getChildren().addAll(r, t);
                 currentLabels.add(entry);
             }
@@ -317,7 +334,5 @@ public class OctViewer extends Application {
         updateStats();
     }
 
-    public static void main(String[] args) {
-        launch(args);
-    }
+    public static void main(String[] args) { launch(args); }
 }

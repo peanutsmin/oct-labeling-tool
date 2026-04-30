@@ -7,7 +7,12 @@
 ## English
 
 ### Background
-During a medical imaging lecture on early lung cancer detection, I learned that peripheral lung lesions found via low-dose CT screening are extremely difficult to biopsy using conventional bronchoscopy. Optical biopsy (OCT-based) is emerging as a radiation-free future solution. While general tools like CVAT and Label Studio exist, no lightweight desktop tool specialized for lung OCT lesion annotation was available. I built this as an experimental MVP — with plans to add YOLO/COCO export, mask annotation, DICOM support, and project reload.
+
+During a medical imaging lecture on early lung cancer detection, I learned that peripheral lung lesions found via low-dose CT screening are extremely difficult to biopsy using conventional bronchoscopy.
+
+Optical biopsy (OCT-based) is emerging as a radiation-free future solution. While general tools like CVAT and Label Studio exist, no lightweight desktop tool specialized for lung OCT lesion annotation was available.
+
+I built this as an experimental MVP — with plans to add YOLO/COCO export, mask annotation, DICOM support, and project reload.
 
 ### What I Built
 A lightweight desktop tool for annotating lung OCT images, designed to generate labeled datasets for future AI training.
@@ -69,7 +74,12 @@ java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.contr
 ## Deutsch
 
 ### Hintergrund
-Während einer Vorlesung über Früherkennung von Lungenkrebs erfuhr ich, dass periphere Lungenläsionen, die im Low-dose-CT-Screening entdeckt werden, mit konventioneller Bronchoskopie extrem schwer zu biopsieren sind. Optische Biopsie (OCT-basiert) gilt als strahlungsfreie Zukunftslösung. Obwohl allgemeine Tools wie CVAT und Label Studio existieren, fehlte ein leichtgewichtiges Desktop-Tool speziell für Lungen-OCT-Läsionsannotation. Dieses Tool wurde als experimentelle MVP-Implementierung entwickelt — mit geplanten Erweiterungen: YOLO/COCO-Export, Mask-Annotation, DICOM-Unterstützung und Projekt-Reload.
+
+Während einer Vorlesung über Früherkennung von Lungenkrebs erfuhr ich, dass periphere Lungenläsionen, die im Low-dose-CT-Screening entdeckt werden, mit konventioneller Bronchoskopie extrem schwer zu biopsieren sind.
+
+Optische Biopsie (OCT-basiert) gilt als strahlungsfreie Zukunftslösung. Obwohl allgemeine Tools wie CVAT und Label Studio existieren, fehlte ein leichtgewichtiges Desktop-Tool speziell für Lungen-OCT-Läsionsannotation.
+
+Dieses Tool wurde als experimentelle MVP-Implementierung entwickelt — mit geplanten Erweiterungen: YOLO/COCO-Export, Mask-Annotation, DICOM-Unterstützung und Projekt-Reload.
 
 ### Funktionen
 - Mehrere Bilder laden (jpg, jpeg, png, bmp)

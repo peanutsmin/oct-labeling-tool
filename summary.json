@@ -1,9 +1,0 @@
-{
-  "summary": {
-    "total_images": 3,
-    "total_labels": 3,
-    "정상": 1,
-    "의심": 1,
-    "확실히_암": 1
-  }
-}

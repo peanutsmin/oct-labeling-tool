@@ -4,3 +4,8 @@ src/*.class
 .idea/
 labels.json
 summary.json
+labels_yolo/
+project.json
+labels.json
+summary.json
+target/

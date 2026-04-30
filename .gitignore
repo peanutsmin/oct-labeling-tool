@@ -1,3 +1,4 @@
 *.class
 *.class
 src/*.class
+.idea/

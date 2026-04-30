@@ -76,6 +76,14 @@ java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.contr
 ```bash
 mvn javafx:run
 ```
+## Workflow
+
+1. Load OCT images
+2. Draw bounding boxes with mouse drag
+3. Assign labels: Normal / Suspicious / Confirmed Cancer
+4. Save project as `project.json` for future sessions
+5. Reopen project to continue or correct annotations
+6. Export as JSON or YOLO format for AI training
 ---
 
 ## Deutsch
@@ -102,6 +110,15 @@ Dieses Tool wurde als experimentelle MVP-Implementierung entwickelt — Das Tool
 ### Technologie
 - Java 21
 - JavaFX 21
+
+## Workflow
+
+1. OCT-Bilder laden
+2. Bounding Boxes per Maus-Drag zeichnen
+3. Label zuweisen: Normal / Verdächtig / Bestätigter Krebs
+4. Projekt als `project.json` speichern
+5. Projekt erneut öffnen und Annotationen korrigieren
+6. Als JSON oder YOLO-Format exportieren
 
 ---
 
@@ -131,3 +148,12 @@ AI 학습용 데이터셋 구축의 첫 단계로 이 툴을 직접 제작했습
 ### 기술 스택
 - Java 21
 - JavaFX 21
+
+## 사용 흐름
+
+1. OCT 이미지 불러오기
+2. 마우스 드래그로 박스 그리기
+3. 정상 / 의심 / 확실히 암 라벨 선택
+4. `project.json`으로 프로젝트 저장
+5. 나중에 프로젝트 열어서 수정
+6. JSON 또는 YOLO 형식으로 export

@@ -191,7 +191,19 @@ public class MainApp extends Application {
         saveBtn.setOnAction(e -> ExportService.exportLabels(store));
         Button yoloBtn = new Button(i18n.t("YOLO 내보내기", "YOLO Export", "YOLO Export"));
 yoloBtn.setOnAction(e -> ExportService.exportYolo(store));
+Button saveProjectBtn = new Button(i18n.t("프로젝트 저장", "Save Project", "Projekt speichern"));
+saveProjectBtn.setOnAction(e -> ProjectService.saveProject(store, "oct_project"));
 
+Button loadProjectBtn = new Button(i18n.t("프로젝트 열기", "Open Project", "Projekt öffnen"));
+loadProjectBtn.setOnAction(e -> {
+    FileChooser fc = new FileChooser();
+    fc.setTitle("project.json 선택");
+    fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON", "*.json"));
+    File file = fc.showOpenDialog(mainStage);
+    if (file != null) {
+        ProjectService.loadProject(store, file.getAbsolutePath());
+    }
+});
         fileLabel = new Label(i18n.t("이미지 없음", "No image", "Kein Bild"));
         progressLabel = new Label("");
         progressLabel.setStyle("-fx-text-fill: steelblue; -fx-font-weight: bold;");
@@ -214,12 +226,15 @@ yoloBtn.setOnAction(e -> ExportService.exportYolo(store));
 
         HBox langBar = new HBox(6, btnKo, btnEn, btnDe);
         langBar.setStyle("-fx-padding: 4 8;");
-        HBox toolbar = new HBox(8, openBtn, prevBtn, fileLabel, nextBtn,
-                new Label(i18n.t("라벨:", "Label:", "Label:")), labelBox, saveBtn, yoloBtn);
-        toolbar.setStyle("-fx-padding: 8;");
+        HBox toolbar1 = new HBox(8, openBtn, prevBtn, fileLabel, nextBtn,
+        new Label(i18n.t("라벨:", "Label:", "Label:")), labelBox);
+toolbar1.setStyle("-fx-padding: 8 8 0 8;");
+
+HBox toolbar2 = new HBox(8, saveBtn, yoloBtn, saveProjectBtn, loadProjectBtn);
+toolbar2.setStyle("-fx-padding: 0 8 8 8;");
         HBox statusBar = new HBox(20, progressLabel);
         statusBar.setStyle("-fx-padding: 2 8;");
-        VBox top = new VBox(langBar, toolbar, statusBar);
+        VBox top = new VBox(langBar, toolbar1, toolbar2, statusBar);
         root.setTop(top);
         if (mainStage != null)
             mainStage.setTitle(i18n.t("OCT 라벨링 툴", "OCT Labeling Tool", "OCT Beschriftungswerkzeug"));

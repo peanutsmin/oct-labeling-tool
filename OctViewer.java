@@ -1,3 +1,4 @@
+
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.stage.FileChooser;
@@ -144,16 +145,22 @@ public class OctViewer extends Application {
                 return;
             }
             String label = labelBox.getValue();
-            double dispW = imageView.getBoundsInParent().getWidth();
-            double dispH = imageView.getBoundsInParent().getHeight();
+            double dispW = imageView.getBoundsInLocal().getWidth();
+            double dispH = imageView.getBoundsInLocal().getHeight();
+            double offsetX = imageView.getBoundsInParent().getMinX();
+            double offsetY = imageView.getBoundsInParent().getMinY();
+
+            double adjX = currentRect.getX() - offsetX;
+            double adjY = currentRect.getY() - offsetY;
+
+            double nx = adjX / dispW;
+            double ny = adjY / dispH;
+            double nw = currentRect.getWidth() / dispW;
+            double nh = currentRect.getHeight() / dispH;
             int imgW = (int) imageView.getImage().getWidth();
             int imgH = (int) imageView.getImage().getHeight();
 
-            double nx = currentRect.getX() / dispW;
-            double ny = currentRect.getY() / dispH;
-            double nw = currentRect.getWidth() / dispW;
-            double nh = currentRect.getHeight() / dispH;
-
+            
             int px = (int)(nx * imgW);
             int py = (int)(ny * imgH);
             int pw = (int)(nw * imgW);

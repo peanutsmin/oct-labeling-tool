@@ -71,6 +71,43 @@ public class ExportServiceTest {
         assertEquals("1 0.300000 0.400000 0.200000 0.200000", Files.readString(yoloFile.toPath()).trim());
     }
 
+    @Test
+    public void clampsJsonAndYoloExportsConsistently() throws Exception {
+        AnnotationStore store = new AnnotationStore();
+        store.loadFor("/images/out_of_bounds.png");
+        store.addAnnotation(new Annotation(
+                "out_of_bounds.png",
+                LabelClass.NORMAL,
+                -0.1, 0.9, 0.3, 0.3,
+                -100, 900, 300, 300,
+                1000, 1000
+        ));
+        File outputDir = temp.newFolder("clamped-export");
+
+        ExportService.ExportResult jsonResult = ExportService.exportLabels(store, outputDir);
+        ExportService.ExportResult yoloResult = ExportService.exportYolo(store, outputDir);
+
+        assertTrue(jsonResult.isSuccess());
+        assertTrue(yoloResult.isSuccess());
+        assertEquals(1, jsonResult.getTotalLabels());
+        assertEquals(1, yoloResult.getTotalLabels());
+
+        try (FileReader reader = new FileReader(new File(outputDir, "labels.json"))) {
+            JsonObject label = JsonParser.parseReader(reader).getAsJsonArray().get(0).getAsJsonObject();
+            assertEquals(0.0, label.get("x").getAsDouble(), 0.000001);
+            assertEquals(0.9, label.get("y").getAsDouble(), 0.000001);
+            assertEquals(0.2, label.get("w").getAsDouble(), 0.000001);
+            assertEquals(0.1, label.get("h").getAsDouble(), 0.000001);
+            assertEquals(0, label.get("x_pixel").getAsInt());
+            assertEquals(900, label.get("y_pixel").getAsInt());
+            assertEquals(200, label.get("w_pixel").getAsInt());
+            assertEquals(100, label.get("h_pixel").getAsInt());
+        }
+
+        File yoloFile = new File(outputDir, "labels_yolo/out_of_bounds.txt");
+        assertEquals("0 0.100000 0.950000 0.200000 0.100000", Files.readString(yoloFile.toPath()).trim());
+    }
+
     private AnnotationStore sampleStore() {
         AnnotationStore store = new AnnotationStore();
         store.loadFor("/images/sample_001.png");

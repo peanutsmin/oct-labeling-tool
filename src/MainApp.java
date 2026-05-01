@@ -209,25 +209,27 @@ public class MainApp extends Application {
             fc.setInitialFileName("project.json");
             File file = fc.showSaveDialog(mainStage);
             if (file != null) {
-                ProjectService.saveProject(store, file.getAbsolutePath(), "oct_project");
+                showProjectResult(
+                        i18n.t("프로젝트 저장", "Save Project", "Projekt speichern"),
+                        ProjectService.saveProject(store, file.getAbsolutePath(), "oct_project")
+                );
             }
         });
 
         Button loadProjectBtn = new Button(i18n.t("프로젝트 열기", "Open Project", "Projekt öffnen"));
         loadProjectBtn.setOnAction(e -> {
             FileChooser fc = new FileChooser();
-            fc.setTitle("project.json 선택");
+            fc.setTitle(i18n.t("project.json 선택", "Choose project.json", "project.json auswählen"));
             fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON", "*.json"));
             File file = fc.showOpenDialog(mainStage);
             if (file != null) {
-                ProjectService.loadProject(store, file.getAbsolutePath());
-                imageFiles = new ArrayList<>(store.getAll().keySet().stream()
-                        .map(File::new)
-                        .filter(File::exists)
-                        .toList());
-                if (!imageFiles.isEmpty()) {
-                    currentIndex = 0;
-                    loadImage(currentIndex);
+                ProjectService.ProjectResult result = ProjectService.loadProject(store, file.getAbsolutePath());
+                showProjectResult(
+                        i18n.t("프로젝트 열기", "Open Project", "Projekt öffnen"),
+                        result
+                );
+                if (result.isSuccess()) {
+                    loadProjectImages();
                 }
             }
         });
@@ -292,6 +294,51 @@ public class MainApp extends Application {
             alert.setContentText(result.getErrorMessage());
         }
         alert.showAndWait();
+    }
+
+    private void showProjectResult(String actionName, ProjectService.ProjectResult result) {
+        Alert.AlertType type = result.isSuccess() ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR;
+        Alert alert = new Alert(type);
+        alert.initOwner(mainStage);
+        alert.setTitle(actionName);
+        if (result.isSuccess()) {
+            alert.setHeaderText(i18n.t("프로젝트 작업 완료", "Project action complete", "Projektaktion abgeschlossen"));
+            alert.setContentText(
+                    i18n.t("파일: ", "File: ", "Datei: ")
+                            + result.getProjectFile().getAbsolutePath()
+                            + "\n"
+                            + i18n.t("이미지 수: ", "Images: ", "Bilder: ")
+                            + result.getImageCount()
+                            + "\n"
+                            + i18n.t("라벨 수: ", "Labels: ", "Labels: ")
+                            + result.getLabelCount()
+            );
+        } else {
+            alert.setHeaderText(i18n.t("프로젝트 작업 실패", "Project action failed", "Projektaktion fehlgeschlagen"));
+            alert.setContentText(result.getErrorMessage());
+        }
+        alert.showAndWait();
+    }
+
+    private void loadProjectImages() {
+        currentIndex = 0;
+        imageFiles = new ArrayList<>(store.getAll().keySet().stream()
+                .map(File::new)
+                .filter(File::exists)
+                .toList());
+        if (!imageFiles.isEmpty()) {
+            currentIndex = 0;
+            loadImage(currentIndex);
+            return;
+        }
+
+        canvas.clearBoxes();
+        fileLabel.setText(i18n.t("이미지 없음", "No image", "Kein Bild"));
+        progressLabel.setText(i18n.t(
+                "프로젝트를 열었지만 이미지 파일을 찾을 수 없습니다.",
+                "Project opened, but referenced image files were not found.",
+                "Projekt geöffnet, aber referenzierte Bilddateien wurden nicht gefunden."
+        ));
     }
 
     private void updateStats() {

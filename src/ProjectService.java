@@ -3,10 +3,11 @@ import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class ProjectService {
 
-    public static void saveProject(AnnotationStore store, String savePath, String projectName) {
+    public static ProjectResult saveProject(AnnotationStore store, String savePath, String projectName) {
         store.saveCurrent();
         try {
             JsonObject root = new JsonObject();
@@ -40,23 +41,25 @@ public class ProjectService {
             root.add("images", images);
 
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            FileWriter fw = new FileWriter(savePath);
-            fw.write(gson.toJson(root));
-            fw.close();
-            System.out.println("프로젝트 저장 완료! " + savePath);
+            try (FileWriter fw = new FileWriter(savePath)) {
+                fw.write(gson.toJson(root));
+            }
+            return ProjectResult.success(new File(savePath), store.getAll().size(), store.totalCount());
         } catch (Exception e) {
-            e.printStackTrace();
+            return ProjectResult.failure(new File(savePath), e);
         }
     }
 
-    public static void loadProject(AnnotationStore store, String path) {
+    public static ProjectResult loadProject(AnnotationStore store, String path) {
         try {
-            BufferedReader br = new BufferedReader(new FileReader(path));
-            JsonObject root = JsonParser.parseReader(br).getAsJsonObject();
-            br.close();
+            JsonObject root;
+            try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+                root = JsonParser.parseReader(br).getAsJsonObject();
+            }
 
-            store.clear();
+            HashMap<String, ArrayList<Annotation>> loaded = new HashMap<>();
             JsonArray images = root.getAsJsonArray("images");
+            int labelCount = 0;
             for (JsonElement imageEl : images) {
                 JsonObject imageObj = imageEl.getAsJsonObject();
                 String filePath = imageObj.get("file").getAsString();
@@ -78,11 +81,63 @@ public class ProjectService {
                     int ih = annObj.get("image_height").getAsInt();
                     anns.add(new Annotation(new File(filePath).getName(), label, x, y, w, h, xp, yp, wp, hp, iw, ih));
                 }
-                store.getAll().put(filePath, anns);
+                labelCount += anns.size();
+                loaded.put(filePath, anns);
             }
-            System.out.println("프로젝트 불러오기 완료! 이미지 수: " + store.getAll().size());
+
+            store.clear();
+            store.getAll().putAll(loaded);
+            return ProjectResult.success(new File(path), loaded.size(), labelCount);
         } catch (Exception e) {
-            e.printStackTrace();
+            return ProjectResult.failure(new File(path), e);
+        }
+    }
+
+    public static class ProjectResult {
+        private final boolean success;
+        private final File projectFile;
+        private final int imageCount;
+        private final int labelCount;
+        private final String errorMessage;
+
+        private ProjectResult(boolean success, File projectFile, int imageCount, int labelCount, String errorMessage) {
+            this.success = success;
+            this.projectFile = projectFile;
+            this.imageCount = imageCount;
+            this.labelCount = labelCount;
+            this.errorMessage = errorMessage;
+        }
+
+        public static ProjectResult success(File projectFile, int imageCount, int labelCount) {
+            return new ProjectResult(true, projectFile, imageCount, labelCount, null);
+        }
+
+        public static ProjectResult failure(File projectFile, Exception error) {
+            String message = error.getMessage();
+            if (message == null || message.isBlank()) {
+                message = error.getClass().getSimpleName();
+            }
+            return new ProjectResult(false, projectFile, 0, 0, message);
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public File getProjectFile() {
+            return projectFile;
+        }
+
+        public int getImageCount() {
+            return imageCount;
+        }
+
+        public int getLabelCount() {
+            return labelCount;
+        }
+
+        public String getErrorMessage() {
+            return errorMessage;
         }
     }
 }

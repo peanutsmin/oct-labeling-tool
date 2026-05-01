@@ -19,11 +19,13 @@ public class ExportService {
         try {
             ensureDirectory(outputDir);
             ArrayList<LabelExport> labels = new ArrayList<>();
-            Summary summary = new Summary(store.getAll().size(), store.totalCount());
+            Summary summary = new Summary(store.getAll().size());
 
             for (ArrayList<Annotation> list : store.getAll().values()) {
                 for (Annotation ann : list) {
-                    labels.add(new LabelExport(ann));
+                    NormalizedBox box = NormalizedBox.fromAnnotation(ann);
+                    if (!box.isValid()) continue;
+                    labels.add(new LabelExport(ann, box));
                     switch (ann.label) {
                         case NORMAL -> summary.normal++;
                         case SUSPICIOUS -> summary.suspicious++;
@@ -37,10 +39,11 @@ public class ExportService {
             }
 
             try (FileWriter sw = new FileWriter(new File(outputDir, "summary.json"))) {
+                summary.total_labels = labels.size();
                 GSON.toJson(new SummaryExport(summary), sw);
             }
 
-            return ExportResult.success(outputDir, store.totalCount());
+            return ExportResult.success(outputDir, labels.size());
         } catch (Exception e) {
             return ExportResult.failure(outputDir, e);
         }
@@ -66,28 +69,17 @@ public class ExportService {
                 try (FileWriter fw = new FileWriter(new File(dir, baseName + ".txt"))) {
                     for (Annotation ann : entry.getValue()) {
                         int classId = ann.label.classId();
-                        double x = clamp(ann.x);
-                        double y = clamp(ann.y);
-                        double w = clamp(ann.w);
-                        double h = clamp(ann.h);
-                        if (w <= 0 || h <= 0) continue;
-                        if (x + w > 1.0) w = 1.0 - x;
-                        if (y + h > 1.0) h = 1.0 - y;
-                        double xCenter = x + w / 2.0;
-                        double yCenter = y + h / 2.0;
+                        NormalizedBox box = NormalizedBox.fromAnnotation(ann);
+                        if (!box.isValid()) continue;
                         fw.write(String.format(Locale.US, "%d %.6f %.6f %.6f %.6f%n",
-                                classId, xCenter, yCenter, w, h));
+                                classId, box.centerX(), box.centerY(), box.w, box.h));
                     }
                 }
             }
-            return ExportResult.success(dir, store.totalCount());
+            return ExportResult.success(dir, countExportableLabels(store));
         } catch (Exception e) {
             return ExportResult.failure(dir, e);
         }
-    }
-
-    private static double clamp(double value) {
-        return Math.max(0.0, Math.min(1.0, value));
     }
 
     private static void ensureDirectory(File dir) throws IOException {
@@ -100,6 +92,18 @@ public class ExportService {
         if (!dir.isDirectory()) {
             throw new IOException("Output path is not a directory: " + dir.getAbsolutePath());
         }
+    }
+
+    private static int countExportableLabels(AnnotationStore store) {
+        int count = 0;
+        for (ArrayList<Annotation> list : store.getAll().values()) {
+            for (Annotation ann : list) {
+                if (NormalizedBox.fromAnnotation(ann).isValid()) {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
     public static class ExportResult {
@@ -151,17 +155,17 @@ public class ExportService {
         int x_pixel, y_pixel, w_pixel, h_pixel;
         int image_width, image_height;
 
-        LabelExport(Annotation ann) {
+        LabelExport(Annotation ann, NormalizedBox box) {
             file = ann.file;
             label = ann.label.exportValue();
-            x = ann.x;
-            y = ann.y;
-            w = ann.w;
-            h = ann.h;
-            x_pixel = ann.xPixel;
-            y_pixel = ann.yPixel;
-            w_pixel = ann.wPixel;
-            h_pixel = ann.hPixel;
+            x = box.x;
+            y = box.y;
+            w = box.w;
+            h = box.h;
+            x_pixel = box.pixelX(ann.imageWidth);
+            y_pixel = box.pixelY(ann.imageHeight);
+            w_pixel = box.pixelW(ann.imageWidth);
+            h_pixel = box.pixelH(ann.imageHeight);
             image_width = ann.imageWidth;
             image_height = ann.imageHeight;
         }
@@ -182,9 +186,8 @@ public class ExportService {
         int suspicious;
         int confirmed_cancer;
 
-        Summary(int totalImages, int totalLabels) {
+        Summary(int totalImages) {
             total_images = totalImages;
-            total_labels = totalLabels;
         }
     }
 }

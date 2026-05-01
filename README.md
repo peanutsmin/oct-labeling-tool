@@ -150,9 +150,10 @@ These values are independent from the selected UI language.
 
 ### Validation
 
-- Project files are saved and loaded using Gson.
+- Project files are saved and loaded using Gson with user-visible success/failure alerts.
 - YOLO export uses normalized center coordinates: `x_center`, `y_center`, `width`, `height`.
-- Coordinates are clamped to the 0–1 range before export.
+- JSON and YOLO exports share the same coordinate clamping logic before writing files.
+- Export behavior is covered by JUnit tests, including out-of-bounds box clipping and locale-safe YOLO decimals.
 - Bounding boxes smaller than 5×5 pixels are automatically discarded.
 
 ---
@@ -294,9 +295,10 @@ Diese Werte sind unabhängig von der gewählten UI-Sprache.
 
 ### Validierung
 
-- Projektdateien werden mit Gson gespeichert und geladen.
+- Projektdateien werden mit Gson gespeichert und geladen, mit sichtbaren Erfolgs- und Fehlermeldungen.
 - YOLO-Export verwendet normalisierte Mittelpunkt-Koordinaten: `x_center`, `y_center`, `width`, `height`.
-- Koordinaten werden vor dem Export auf den Bereich 0–1 begrenzt.
+- JSON- und YOLO-Export verwenden dieselbe Koordinatenbegrenzung vor dem Schreiben.
+- Das Exportverhalten wird durch JUnit-Tests geprüft, inklusive Clipping außerhalb des Bildbereichs und locale-sicherer YOLO-Dezimalzahlen.
 - Bounding Boxes kleiner als 5×5 Pixel werden automatisch verworfen.
 
 ---
@@ -443,7 +445,8 @@ confirmed_cancer = 확실히 암
 
 ### 검증
 
-- 프로젝트 파일은 Gson으로 저장하고 불러옵니다.
+- 프로젝트 파일은 Gson으로 저장하고 불러오며, 성공/실패를 UI Alert로 표시합니다.
 - YOLO export는 정규화된 중심 좌표를 사용합니다: `x_center`, `y_center`, `width`, `height`.
-- export 전에 좌표를 0~1 범위로 clamp합니다.
+- JSON과 YOLO export는 같은 좌표 clamp 로직을 공유합니다.
+- out-of-bounds box clipping과 locale-safe YOLO 소수점 출력은 JUnit 테스트로 검증합니다.
 - 5×5 픽셀보다 작은 bounding box는 자동으로 제외됩니다.

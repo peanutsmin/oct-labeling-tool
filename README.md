@@ -27,6 +27,7 @@ A lightweight desktop tool for annotating lung OCT images, designed to generate 
 - Load multiple images (jpg, jpeg, png, bmp)
 - Draw bounding boxes with mouse drag
 - Move and resize existing bounding boxes
+- Change labels on selected bounding boxes
 - Label regions: Normal / Suspicious / Confirmed Cancer
 - Keyboard shortcuts: ←/→ to navigate, 1/2/3 to select label
 - Labels persist when switching between images
@@ -180,6 +181,7 @@ Ein leichtgewichtiges Desktop-Tool zur Annotation von Lungen-OCT-Bildern, entwic
 - Mehrere Bilder laden (jpg, jpeg, png, bmp)
 - Bounding Boxes per Maus-Drag zeichnen
 - Vorhandene Bounding Boxes verschieben und skalieren
+- Labels ausgewählter Bounding Boxes ändern
 - Regionen beschriften: Normal / Verdächtig / Bestätigter Krebs
 - Tastaturkürzel: ←/→ navigieren, 1/2/3 Label wählen
 - Labels bleiben beim Wechsel zwischen Bildern erhalten
@@ -326,6 +328,7 @@ AI 학습용 데이터셋 구축 과정을 직접 실험해보기 위해 이 툴
 - 여러 장 이미지 선택 (jpg, jpeg, png, bmp)
 - 마우스 드래그로 bounding box 그리기
 - 기존 bounding box 이동 및 리사이즈
+- 선택한 bounding box 라벨 변경
 - 정상 / 의심 / 확실히 암 라벨 선택
 - 단축키: ←/→ 이미지 이동, 1/2/3 라벨 선택
 - 이미지 전환 시 라벨 유지

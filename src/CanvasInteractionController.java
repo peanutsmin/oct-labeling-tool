@@ -71,6 +71,27 @@ public class CanvasInteractionController {
         canvas.clearSelection();
     }
 
+    public boolean applySelectedLabel(LabelClass label) {
+        if (selectedIndex < 0 || selectedIndex >= store.getCurrent().size()
+                || selectedIndex >= canvas.getRects().size()) {
+            return false;
+        }
+
+        Annotation ann = store.getCurrent().get(selectedIndex);
+        ann.label = label;
+
+        Color color = ImageCanvas.getLabelColor(label);
+        Rectangle rect = canvas.getRects().get(selectedIndex);
+        Text text = canvas.getTexts().get(selectedIndex);
+        rect.setStroke(color);
+        text.setText(labelDisplay.apply(label));
+        text.setFill(color);
+        canvas.updateTextPosition(selectedIndex);
+        canvas.selectBox(selectedIndex);
+        onAnnotationsChanged.run();
+        return true;
+    }
+
     private void handlePressed(MouseEvent e) {
         canvas.requestFocus();
         if (canvas.getImageView().getImage() == null) {

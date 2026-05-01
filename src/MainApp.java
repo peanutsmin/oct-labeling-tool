@@ -123,6 +123,18 @@ public class MainApp extends Application {
             }
         });
 
+        Button applyLabelBtn = new Button(i18n.t("라벨 적용", "Apply Label", "Label anwenden"));
+        applyLabelBtn.setOnAction(e -> {
+            LabelClass label = LabelClass.fromDisplay(labelBox.getValue());
+            if (!canvasController.applySelectedLabel(label)) {
+                progressLabel.setText(i18n.t(
+                        "라벨을 적용할 박스를 먼저 선택하세요.",
+                        "Select a box before applying a label.",
+                        "Wählen Sie zuerst eine Box aus."
+                ));
+            }
+        });
+
         Button saveBtn = new Button(i18n.t("JSON 내보내기", "JSON Export", "JSON Export"));
         saveBtn.setOnAction(e -> {
             File dir = chooseDirectory(i18n.t("JSON 내보내기 폴더 선택", "Choose JSON export folder", "JSON-Exportordner wählen"));
@@ -197,7 +209,7 @@ public class MainApp extends Application {
         });
 
         AppStyle.applyPrimaryButton(openBtn);
-        for (Button button : List.of(prevBtn, nextBtn, saveBtn, yoloBtn, saveProjectBtn, loadProjectBtn, btnKo, btnEn, btnDe)) {
+        for (Button button : List.of(prevBtn, nextBtn, applyLabelBtn, saveBtn, yoloBtn, saveProjectBtn, loadProjectBtn, btnKo, btnEn, btnDe)) {
             AppStyle.applyButton(button);
         }
         AppStyle.applyComboBox(labelBox);
@@ -205,7 +217,7 @@ public class MainApp extends Application {
         HBox langBar = new HBox(6, btnKo, btnEn, btnDe);
         AppStyle.applyToolbar(langBar);
         HBox toolbar1 = new HBox(8, openBtn, prevBtn, fileLabel, nextBtn,
-                new Label(i18n.t("라벨:", "Label:", "Label:")), labelBox);
+                new Label(i18n.t("라벨:", "Label:", "Label:")), labelBox, applyLabelBtn);
         AppStyle.applyToolbar(toolbar1);
 
         HBox toolbar2 = new HBox(8, saveBtn, yoloBtn, saveProjectBtn, loadProjectBtn);

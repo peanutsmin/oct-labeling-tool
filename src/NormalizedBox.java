@@ -12,10 +12,14 @@ public class NormalizedBox {
     }
 
     public static NormalizedBox fromAnnotation(Annotation ann) {
-        double left = Math.min(ann.x, ann.x + ann.w);
-        double right = Math.max(ann.x, ann.x + ann.w);
-        double top = Math.min(ann.y, ann.y + ann.h);
-        double bottom = Math.max(ann.y, ann.y + ann.h);
+        return fromValues(ann.x, ann.y, ann.w, ann.h);
+    }
+
+    public static NormalizedBox fromValues(double x, double y, double w, double h) {
+        double left = Math.min(x, x + w);
+        double right = Math.max(x, x + w);
+        double top = Math.min(y, y + h);
+        double bottom = Math.max(y, y + h);
 
         double clippedLeft = clamp(left);
         double clippedRight = clamp(right);

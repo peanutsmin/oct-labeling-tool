@@ -6,7 +6,7 @@
       "file": "/path/to/images/sample_001.png",
       "annotations": [
         {
-          "label": "Suspicious",
+          "label": "suspicious",
           "x": 0.2143,
           "y": 0.3512,
           "w": 0.1820,

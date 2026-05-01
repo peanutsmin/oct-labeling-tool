@@ -21,7 +21,7 @@ public class ProjectService {
                 JsonArray annotations = new JsonArray();
                 for (Annotation ann : entry.getValue()) {
                     JsonObject annObj = new JsonObject();
-                    annObj.addProperty("label", ann.label);
+                    annObj.addProperty("label", ann.label.exportValue());
                     annObj.addProperty("x", ann.x);
                     annObj.addProperty("y", ann.y);
                     annObj.addProperty("w", ann.w);
@@ -65,7 +65,7 @@ public class ProjectService {
                 JsonArray annotations = imageObj.getAsJsonArray("annotations");
                 for (JsonElement annEl : annotations) {
                     JsonObject annObj = annEl.getAsJsonObject();
-                    String label = annObj.get("label").getAsString();
+                    LabelClass label = LabelClass.fromStoredValue(annObj.get("label").getAsString());
                     double x = annObj.get("x").getAsDouble();
                     double y = annObj.get("y").getAsDouble();
                     double w = annObj.get("w").getAsDouble();

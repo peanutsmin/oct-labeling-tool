@@ -52,9 +52,11 @@ public class ImageCanvas extends Pane {
         texts.clear();
     }
 
-    public static Color getLabelColor(String label) {
-        if (label.equals("정상") || label.equals("Normal")) return Color.GREEN;
-        if (label.equals("의심") || label.equals("Suspicious") || label.equals("Verdächtig")) return Color.ORANGE;
-        return Color.RED;
+    public static Color getLabelColor(LabelClass label) {
+        return switch (label) {
+            case NORMAL -> Color.GREEN;
+            case SUSPICIOUS -> Color.ORANGE;
+            case CONFIRMED_CANCER -> Color.RED;
+        };
     }
 }

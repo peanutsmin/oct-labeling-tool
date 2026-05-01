@@ -34,6 +34,7 @@ A lightweight desktop tool for annotating lung OCT images, designed to generate 
 - Export to JSON with normalized coordinates
 - Export to YOLO format for object detection training
 - Save summary statistics to `summary.json`
+- Choose export folders for JSON and YOLO outputs
 - Project save/load using `project.json`
 - Coordinate clamping for safer dataset export
 - Automatic discard of bounding boxes smaller than 5×5 pixels
@@ -95,7 +96,7 @@ java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.contr
 [
   {
     "file": "image.jpeg",
-    "label": "Suspicious",
+    "label": "suspicious",
     "x": 0.2425,
     "y": 0.1897,
     "w": 0.18,
@@ -127,6 +128,18 @@ Class mapping:
 1 = Suspicious
 2 = Confirmed Cancer
 ```
+
+#### Label Schema
+
+Exported JSON uses stable machine-readable labels:
+
+```txt
+normal = Normal
+suspicious = Suspicious
+confirmed_cancer = Confirmed Cancer
+```
+
+These values are independent from the selected UI language.
 
 ### Limitations
 
@@ -172,6 +185,7 @@ Ein leichtgewichtiges Desktop-Tool zur Annotation von Lungen-OCT-Bildern, entwic
 - JSON-Export mit normalisierten Koordinaten
 - YOLO-Format-Export für Object-Detection-Training
 - Summary-Statistiken werden in `summary.json` gespeichert
+- Exportordner für JSON- und YOLO-Ausgaben auswählbar
 - Projekt speichern/laden mit `project.json`
 - Koordinaten-Clamping für sicheren Datensatz-Export
 - Automatisches Verwerfen von Bounding Boxes kleiner als 5×5 Pixel
@@ -226,7 +240,7 @@ java --module-path /path/to/javafx/lib --add-modules javafx.controls -cp src Mai
 [
   {
     "file": "image.jpeg",
-    "label": "Verdächtig",
+    "label": "suspicious",
     "x": 0.2425,
     "y": 0.1897,
     "w": 0.18,
@@ -258,6 +272,18 @@ Klassen-Zuordnung:
 1 = Verdächtig
 2 = Bestätigter Krebs
 ```
+
+#### Label-Schema
+
+Der JSON-Export verwendet stabile maschinenlesbare Labels:
+
+```txt
+normal = Normal
+suspicious = Verdächtig
+confirmed_cancer = Bestätigter Krebs
+```
+
+Diese Werte sind unabhängig von der gewählten UI-Sprache.
 
 ### Einschränkungen
 
@@ -303,6 +329,7 @@ AI 학습용 데이터셋 구축 과정을 직접 실험해보기 위해 이 툴
 - 정규화된 좌표로 JSON export
 - AI 객체탐지 학습용 YOLO format export
 - `summary.json`에 통계 저장
+- JSON/YOLO export 폴더 선택
 - `project.json`기반 project 저장/불러오기
 - 안전한 데이터셋 export를 위한 좌표 clamp
 - 5×5 픽셀보다 작은 bounding box 자동 제외
@@ -364,7 +391,7 @@ java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.contr
 [
   {
     "file": "image.jpeg",
-    "label": "의심",
+    "label": "suspicious",
     "x": 0.2425,
     "y": 0.1897,
     "w": 0.18,
@@ -395,6 +422,16 @@ class_id x_center y_center width height
 0 = 정상
 1 = 의심
 2 = 확실히 암
+```
+
+#### 라벨 스키마
+
+JSON export는 UI 언어와 무관한 고정 라벨 값을 사용합니다:
+
+```txt
+normal = 정상
+suspicious = 의심
+confirmed_cancer = 확실히 암
 ```
 
 ### 한계 및 주의사항

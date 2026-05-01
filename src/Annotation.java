@@ -1,11 +1,11 @@
 public class Annotation {
     public String file;
-    public String label;
+    public LabelClass label;
     public double x, y, w, h;
     public int xPixel, yPixel, wPixel, hPixel;
     public int imageWidth, imageHeight;
 
-    public Annotation(String file, String label,
+    public Annotation(String file, LabelClass label,
                       double x, double y, double w, double h,
                       int xPixel, int yPixel, int wPixel, int hPixel,
                       int imageWidth, int imageHeight) {
@@ -23,15 +23,12 @@ public class Annotation {
         this.imageHeight = imageHeight;
     }
 
-    public String toJson() {
-        return String.format(
-                "{\"file\":\"%s\",\"label\":\"%s\"," +
-                        "\"x\":%.4f,\"y\":%.4f,\"w\":%.4f,\"h\":%.4f," +
-                        "\"x_pixel\":%d,\"y_pixel\":%d,\"w_pixel\":%d,\"h_pixel\":%d," +
-                        "\"image_width\":%d,\"image_height\":%d}",
-                file, label, x, y, w, h,
-                xPixel, yPixel, wPixel, hPixel,
-                imageWidth, imageHeight
-        );
+    public Annotation(String file, String label,
+                      double x, double y, double w, double h,
+                      int xPixel, int yPixel, int wPixel, int hPixel,
+                      int imageWidth, int imageHeight) {
+        this(file, LabelClass.fromStoredValue(label), x, y, w, h,
+                xPixel, yPixel, wPixel, hPixel, imageWidth, imageHeight);
     }
+
 }

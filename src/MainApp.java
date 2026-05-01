@@ -1,11 +1,13 @@
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.stage.FileChooser;
+import javafx.stage.DirectoryChooser;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.image.Image;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -44,22 +46,13 @@ public class MainApp extends Application {
         canvas.setOnMousePressed(e -> {
             canvas.requestFocus();
             if (e.isSecondaryButtonDown()) {
-                Rectangle target = null;
-                double minDist = Double.MAX_VALUE;
-                for (Rectangle r : canvas.getRects()) {
-                    double cx = r.getX() + r.getWidth() / 2;
-                    double cy = r.getY() + r.getHeight() / 2;
-                    double dist = Math.hypot(e.getX() - cx, e.getY() - cy);
-                    if (dist < minDist) {
-                        minDist = dist;
-                        target = r;
-                    }
-                }
-                if (target != null) {
-                    int idx = canvas.getRects().indexOf(target);
+                for (int idx = canvas.getRects().size() - 1; idx >= 0; idx--) {
+                    Rectangle target = canvas.getRects().get(idx);
+                    if (!target.contains(e.getX(), e.getY())) continue;
                     canvas.removeBox(idx);
                     store.removeAnnotation(idx);
                     updateStats();
+                    break;
                 }
                 return;
             }
@@ -89,7 +82,7 @@ public class MainApp extends Application {
                 currentRect = null;
                 return;
             }
-            String label = labelBox.getValue();
+            LabelClass label = LabelClass.fromDisplay(labelBox.getValue());
             double dispW = canvas.getImageView().getBoundsInLocal().getWidth();
             double dispH = canvas.getImageView().getBoundsInLocal().getHeight();
             double offsetX = canvas.getImageView().getBoundsInParent().getMinX();
@@ -114,7 +107,7 @@ public class MainApp extends Application {
             store.addAnnotation(ann);
             Color color = ImageCanvas.getLabelColor(label);
             currentRect.setStroke(color);
-            Text txt = new Text(currentRect.getX() + 2, currentRect.getY() - 4, label);
+            Text txt = new Text(currentRect.getX() + 2, currentRect.getY() - 4, label.display(i18n));
             txt.setFill(color);
             canvas.addBox(currentRect, txt);
             currentRect = null;
@@ -187,41 +180,57 @@ public class MainApp extends Application {
             }
         });
 
-        Button saveBtn = new Button(i18n.t("저장", "Save", "Speichern"));
-        saveBtn.setOnAction(e -> ExportService.exportLabels(store));
+        Button saveBtn = new Button(i18n.t("JSON 내보내기", "JSON Export", "JSON Export"));
+        saveBtn.setOnAction(e -> {
+            File dir = chooseDirectory(i18n.t("JSON 내보내기 폴더 선택", "Choose JSON export folder", "JSON-Exportordner wählen"));
+            if (dir != null) {
+                showExportResult(
+                        i18n.t("JSON 내보내기", "JSON Export", "JSON Export"),
+                        ExportService.exportLabels(store, dir)
+                );
+            }
+        });
         Button yoloBtn = new Button(i18n.t("YOLO 내보내기", "YOLO Export", "YOLO Export"));
-yoloBtn.setOnAction(e -> ExportService.exportYolo(store));
-Button saveProjectBtn = new Button(i18n.t("프로젝트 저장", "Save Project", "Projekt speichern"));
-saveProjectBtn.setOnAction(e -> {
-    FileChooser fc = new FileChooser();
-    fc.setTitle(i18n.t("프로젝트 저장", "Save Project", "Projekt speichern"));
-    fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON", "*.json"));
-    fc.setInitialFileName("project.json");
-    File file = fc.showSaveDialog(mainStage);
-    if (file != null) {
-       ProjectService.saveProject(store, file.getAbsolutePath(), "oct_project");
-       
-    }
-});
+        yoloBtn.setOnAction(e -> {
+            File dir = chooseDirectory(i18n.t("YOLO 내보내기 폴더 선택", "Choose YOLO export folder", "YOLO-Exportordner wählen"));
+            if (dir != null) {
+                showExportResult(
+                        i18n.t("YOLO 내보내기", "YOLO Export", "YOLO Export"),
+                        ExportService.exportYolo(store, dir)
+                );
+            }
+        });
 
-Button loadProjectBtn = new Button(i18n.t("프로젝트 열기", "Open Project", "Projekt öffnen"));
-loadProjectBtn.setOnAction(e -> {
-    FileChooser fc = new FileChooser();
-    fc.setTitle("project.json 선택");
-    fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON", "*.json"));
-    File file = fc.showOpenDialog(mainStage);
-    if (file != null) {
-        ProjectService.loadProject(store, file.getAbsolutePath());
-        imageFiles = new ArrayList<>(store.getAll().keySet().stream()
-            .map(File::new)
-            .filter(File::exists)
-            .toList());
-        if (!imageFiles.isEmpty()) {
-            currentIndex = 0;
-            loadImage(currentIndex);
-        }
-    }
-});
+        Button saveProjectBtn = new Button(i18n.t("프로젝트 저장", "Save Project", "Projekt speichern"));
+        saveProjectBtn.setOnAction(e -> {
+            FileChooser fc = new FileChooser();
+            fc.setTitle(i18n.t("프로젝트 저장", "Save Project", "Projekt speichern"));
+            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON", "*.json"));
+            fc.setInitialFileName("project.json");
+            File file = fc.showSaveDialog(mainStage);
+            if (file != null) {
+                ProjectService.saveProject(store, file.getAbsolutePath(), "oct_project");
+            }
+        });
+
+        Button loadProjectBtn = new Button(i18n.t("프로젝트 열기", "Open Project", "Projekt öffnen"));
+        loadProjectBtn.setOnAction(e -> {
+            FileChooser fc = new FileChooser();
+            fc.setTitle("project.json 선택");
+            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON", "*.json"));
+            File file = fc.showOpenDialog(mainStage);
+            if (file != null) {
+                ProjectService.loadProject(store, file.getAbsolutePath());
+                imageFiles = new ArrayList<>(store.getAll().keySet().stream()
+                        .map(File::new)
+                        .filter(File::exists)
+                        .toList());
+                if (!imageFiles.isEmpty()) {
+                    currentIndex = 0;
+                    loadImage(currentIndex);
+                }
+            }
+        });
         fileLabel = new Label(i18n.t("이미지 없음", "No image", "Kein Bild"));
         progressLabel = new Label("");
         progressLabel.setStyle("-fx-text-fill: steelblue; -fx-font-weight: bold;");
@@ -245,11 +254,11 @@ loadProjectBtn.setOnAction(e -> {
         HBox langBar = new HBox(6, btnKo, btnEn, btnDe);
         langBar.setStyle("-fx-padding: 4 8;");
         HBox toolbar1 = new HBox(8, openBtn, prevBtn, fileLabel, nextBtn,
-        new Label(i18n.t("라벨:", "Label:", "Label:")), labelBox);
-toolbar1.setStyle("-fx-padding: 8 8 0 8;");
+                new Label(i18n.t("라벨:", "Label:", "Label:")), labelBox);
+        toolbar1.setStyle("-fx-padding: 8 8 0 8;");
 
-HBox toolbar2 = new HBox(8, saveBtn, yoloBtn, saveProjectBtn, loadProjectBtn);
-toolbar2.setStyle("-fx-padding: 0 8 8 8;");
+        HBox toolbar2 = new HBox(8, saveBtn, yoloBtn, saveProjectBtn, loadProjectBtn);
+        toolbar2.setStyle("-fx-padding: 0 8 8 8;");
         HBox statusBar = new HBox(20, progressLabel);
         statusBar.setStyle("-fx-padding: 2 8;");
         VBox top = new VBox(langBar, toolbar1, toolbar2, statusBar);
@@ -258,12 +267,41 @@ toolbar2.setStyle("-fx-padding: 0 8 8 8;");
             mainStage.setTitle(i18n.t("OCT 라벨링 툴", "OCT Labeling Tool", "OCT Beschriftungswerkzeug"));
     }
 
+    private File chooseDirectory(String title) {
+        DirectoryChooser dc = new DirectoryChooser();
+        dc.setTitle(title);
+        return dc.showDialog(mainStage);
+    }
+
+    private void showExportResult(String exportName, ExportService.ExportResult result) {
+        Alert.AlertType type = result.isSuccess() ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR;
+        Alert alert = new Alert(type);
+        alert.initOwner(mainStage);
+        alert.setTitle(exportName);
+        if (result.isSuccess()) {
+            alert.setHeaderText(i18n.t("내보내기 완료", "Export complete", "Export abgeschlossen"));
+            alert.setContentText(
+                    i18n.t("저장 위치: ", "Saved to: ", "Gespeichert unter: ")
+                            + result.getOutputPath().getAbsolutePath()
+                            + "\n"
+                            + i18n.t("라벨 수: ", "Labels: ", "Labels: ")
+                            + result.getTotalLabels()
+            );
+        } else {
+            alert.setHeaderText(i18n.t("내보내기 실패", "Export failed", "Export fehlgeschlagen"));
+            alert.setContentText(result.getErrorMessage());
+        }
+        alert.showAndWait();
+    }
+
     private void updateStats() {
         int n = 0, s = 0, c = 0;
         for (Annotation ann : store.getCurrent()) {
-            if (ann.label.equals("정상") || ann.label.equals("Normal")) n++;
-            else if (ann.label.equals("의심") || ann.label.equals("Suspicious") || ann.label.equals("Verdächtig")) s++;
-            else c++;
+            switch (ann.label) {
+                case NORMAL -> n++;
+                case SUSPICIOUS -> s++;
+                case CONFIRMED_CANCER -> c++;
+            }
         }
         if (!imageFiles.isEmpty()) {
             progressLabel.setText((currentIndex + 1) + " / " + imageFiles.size() +
@@ -287,7 +325,7 @@ toolbar2.setStyle("-fx-padding: 0 8 8 8;");
             r.setStroke(color);
             r.setFill(Color.TRANSPARENT);
             r.setStrokeWidth(2);
-            Text t = new Text(r.getX() + 2, r.getY() - 4, ann.label);
+            Text t = new Text(r.getX() + 2, r.getY() - 4, ann.label.display(i18n));
             t.setFill(color);
             canvas.addBox(r, t);
         }

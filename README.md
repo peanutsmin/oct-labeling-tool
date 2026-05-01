@@ -303,7 +303,7 @@ AI 학습용 데이터셋 구축 과정을 직접 실험해보기 위해 이 툴
 - 정규화된 좌표로 JSON export
 - AI 객체탐지 학습용 YOLO format export
 - `summary.json`에 통계 저장
-- `project.json` 기반 project 저장/불러오기
+- `project.json`기반 project 저장/불러오기
 - 안전한 데이터셋 export를 위한 좌표 clamp
 - 5×5 픽셀보다 작은 bounding box 자동 제외
 

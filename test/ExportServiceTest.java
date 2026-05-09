@@ -72,6 +72,37 @@ public class ExportServiceTest {
     }
 
     @Test
+    public void exportsCocoFileUnderSelectedDirectory() throws Exception {
+        AnnotationStore store = sampleStore();
+        File outputDir = temp.newFolder("coco-export");
+
+        ExportService.ExportResult result = ExportService.exportCoco(store, outputDir);
+
+        assertTrue(result.isSuccess());
+        assertEquals(new File(outputDir, "coco_annotations.json").getAbsolutePath(), result.getOutputPath().getAbsolutePath());
+        assertEquals(1, result.getTotalLabels());
+
+        try (FileReader reader = new FileReader(new File(outputDir, "coco_annotations.json"))) {
+            JsonObject coco = JsonParser.parseReader(reader).getAsJsonObject();
+            JsonObject image = coco.getAsJsonArray("images").get(0).getAsJsonObject();
+            JsonObject annotation = coco.getAsJsonArray("annotations").get(0).getAsJsonObject();
+            JsonObject category = coco.getAsJsonArray("categories").get(1).getAsJsonObject();
+
+            assertEquals("sample_001.png", image.get("file_name").getAsString());
+            assertEquals(1000, image.get("width").getAsInt());
+            assertEquals(1000, image.get("height").getAsInt());
+            assertEquals(1, annotation.get("image_id").getAsInt());
+            assertEquals(1, annotation.get("category_id").getAsInt());
+            assertEquals(200.0, annotation.getAsJsonArray("bbox").get(0).getAsDouble(), 0.000001);
+            assertEquals(300.0, annotation.getAsJsonArray("bbox").get(1).getAsDouble(), 0.000001);
+            assertEquals(200.0, annotation.getAsJsonArray("bbox").get(2).getAsDouble(), 0.000001);
+            assertEquals(200.0, annotation.getAsJsonArray("bbox").get(3).getAsDouble(), 0.000001);
+            assertEquals(40000, annotation.get("area").getAsInt());
+            assertEquals("suspicious", category.get("name").getAsString());
+        }
+    }
+
+    @Test
     public void clampsJsonAndYoloExportsConsistently() throws Exception {
         AnnotationStore store = new AnnotationStore();
         store.loadFor("/images/out_of_bounds.png");
@@ -86,11 +117,14 @@ public class ExportServiceTest {
 
         ExportService.ExportResult jsonResult = ExportService.exportLabels(store, outputDir);
         ExportService.ExportResult yoloResult = ExportService.exportYolo(store, outputDir);
+        ExportService.ExportResult cocoResult = ExportService.exportCoco(store, outputDir);
 
         assertTrue(jsonResult.isSuccess());
         assertTrue(yoloResult.isSuccess());
+        assertTrue(cocoResult.isSuccess());
         assertEquals(1, jsonResult.getTotalLabels());
         assertEquals(1, yoloResult.getTotalLabels());
+        assertEquals(1, cocoResult.getTotalLabels());
 
         try (FileReader reader = new FileReader(new File(outputDir, "labels.json"))) {
             JsonObject label = JsonParser.parseReader(reader).getAsJsonArray().get(0).getAsJsonObject();
@@ -106,6 +140,16 @@ public class ExportServiceTest {
 
         File yoloFile = new File(outputDir, "labels_yolo/out_of_bounds.txt");
         assertEquals("0 0.100000 0.950000 0.200000 0.100000", Files.readString(yoloFile.toPath()).trim());
+
+        try (FileReader reader = new FileReader(new File(outputDir, "coco_annotations.json"))) {
+            JsonObject annotation = JsonParser.parseReader(reader).getAsJsonObject()
+                    .getAsJsonArray("annotations").get(0).getAsJsonObject();
+            assertEquals(0.0, annotation.getAsJsonArray("bbox").get(0).getAsDouble(), 0.000001);
+            assertEquals(900.0, annotation.getAsJsonArray("bbox").get(1).getAsDouble(), 0.000001);
+            assertEquals(200.0, annotation.getAsJsonArray("bbox").get(2).getAsDouble(), 0.000001);
+            assertEquals(100.0, annotation.getAsJsonArray("bbox").get(3).getAsDouble(), 0.000001);
+            assertEquals(20000, annotation.get("area").getAsInt());
+        }
     }
 
     private AnnotationStore sampleStore() {

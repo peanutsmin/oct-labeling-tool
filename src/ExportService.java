@@ -5,7 +5,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class ExportService {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -79,6 +82,58 @@ public class ExportService {
             return ExportResult.success(dir, countExportableLabels(store));
         } catch (Exception e) {
             return ExportResult.failure(dir, e);
+        }
+    }
+
+    public static ExportResult exportCoco(AnnotationStore store) {
+        return exportCoco(store, new File("."));
+    }
+
+    public static ExportResult exportCoco(AnnotationStore store, File outputDir) {
+        store.saveCurrent();
+        File outputFile = new File(outputDir, "coco_annotations.json");
+
+        try {
+            ensureDirectory(outputDir);
+
+            CocoExport coco = new CocoExport();
+            for (LabelClass label : LabelClass.values()) {
+                coco.categories.add(new CocoCategory(label.classId(), label.exportValue()));
+            }
+
+            int imageId = 1;
+            int annotationId = 1;
+            List<Map.Entry<String, ArrayList<Annotation>>> entries = new ArrayList<>(store.getAll().entrySet());
+            entries.sort(Comparator.comparing(Map.Entry::getKey));
+
+            for (Map.Entry<String, ArrayList<Annotation>> entry : entries) {
+                ArrayList<Annotation> annotations = entry.getValue();
+                int imageWidth = 0;
+                int imageHeight = 0;
+                if (!annotations.isEmpty()) {
+                    imageWidth = annotations.get(0).imageWidth;
+                    imageHeight = annotations.get(0).imageHeight;
+                }
+
+                String imageName = new File(entry.getKey()).getName();
+                coco.images.add(new CocoImage(imageId, imageName, imageWidth, imageHeight));
+
+                for (Annotation ann : annotations) {
+                    NormalizedBox box = NormalizedBox.fromAnnotation(ann);
+                    if (!box.isValid()) continue;
+                    coco.annotations.add(new CocoAnnotation(annotationId, imageId, ann, box));
+                    annotationId++;
+                }
+                imageId++;
+            }
+
+            try (FileWriter fw = new FileWriter(outputFile)) {
+                GSON.toJson(coco, fw);
+            }
+
+            return ExportResult.success(outputFile, coco.annotations.size());
+        } catch (Exception e) {
+            return ExportResult.failure(outputFile, e);
         }
     }
 
@@ -188,6 +243,59 @@ public class ExportService {
 
         Summary(int totalImages) {
             total_images = totalImages;
+        }
+    }
+
+    private static class CocoExport {
+        ArrayList<CocoImage> images = new ArrayList<>();
+        ArrayList<CocoAnnotation> annotations = new ArrayList<>();
+        ArrayList<CocoCategory> categories = new ArrayList<>();
+    }
+
+    private static class CocoImage {
+        int id;
+        String file_name;
+        int width;
+        int height;
+
+        CocoImage(int id, String fileName, int width, int height) {
+            this.id = id;
+            this.file_name = fileName;
+            this.width = width;
+            this.height = height;
+        }
+    }
+
+    private static class CocoAnnotation {
+        int id;
+        int image_id;
+        int category_id;
+        double[] bbox;
+        int area;
+        int iscrowd = 0;
+
+        CocoAnnotation(int id, int imageId, Annotation ann, NormalizedBox box) {
+            int x = box.pixelX(ann.imageWidth);
+            int y = box.pixelY(ann.imageHeight);
+            int width = box.pixelW(ann.imageWidth);
+            int height = box.pixelH(ann.imageHeight);
+
+            this.id = id;
+            this.image_id = imageId;
+            this.category_id = ann.label.classId();
+            this.bbox = new double[]{x, y, width, height};
+            this.area = width * height;
+        }
+    }
+
+    private static class CocoCategory {
+        int id;
+        String name;
+        String supercategory = "lung_oct";
+
+        CocoCategory(int id, String name) {
+            this.id = id;
+            this.name = name;
         }
     }
 }

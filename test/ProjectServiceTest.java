@@ -24,6 +24,7 @@ public class ProjectServiceTest {
                 100, 200, 300, 400,
                 1000, 1000
         ));
+        store.setReviewed("/images/sample_001.png", true);
         File projectFile = new File(temp.getRoot(), "project.json");
 
         ProjectService.ProjectResult saveResult = ProjectService.saveProject(
@@ -37,11 +38,14 @@ public class ProjectServiceTest {
         assertEquals(1, saveResult.getLabelCount());
 
         try (FileReader reader = new FileReader(projectFile)) {
-            String label = JsonParser.parseReader(reader)
+            var image = JsonParser.parseReader(reader)
                     .getAsJsonObject()
                     .getAsJsonArray("images")
                     .get(0)
-                    .getAsJsonObject()
+                    .getAsJsonObject();
+            assertTrue(image.get("reviewed").getAsBoolean());
+
+            String label = image
                     .getAsJsonArray("annotations")
                     .get(0)
                     .getAsJsonObject()
@@ -61,5 +65,6 @@ public class ProjectServiceTest {
         assertEquals(1, loadResult.getLabelCount());
         assertEquals(LabelClass.CONFIRMED_CANCER,
                 loadedStore.getAll().get("/images/sample_001.png").get(0).label);
+        assertTrue(loadedStore.isReviewed("/images/sample_001.png"));
     }
 }

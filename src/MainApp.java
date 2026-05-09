@@ -8,16 +8,22 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.image.Image;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Slider;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.paint.Color;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.MouseEvent;
+import javafx.geometry.Bounds;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 public class MainApp extends Application {
 
@@ -28,18 +34,30 @@ public class MainApp extends Application {
     private int currentIndex = 0;
     private Label fileLabel;
     private Label progressLabel;
+    private Label overviewLabel;
+    private CheckBox reviewedCheckBox;
     private ComboBox<String> labelBox;
+    private Button zoomResetBtn;
+    private Slider brightnessSlider;
+    private Slider contrastSlider;
     private Stage mainStage;
     private BorderPane root;
+    private ScrollPane canvasScrollPane;
     private DialogService dialogs;
     private CanvasInteractionController canvasController;
+    private double lastPanX;
+    private double lastPanY;
 
     @Override
     public void start(Stage stage) {
         this.mainStage = stage;
         this.dialogs = new DialogService(stage, i18n);
         root = new BorderPane();
-        root.setCenter(canvas);
+        canvasScrollPane = new ScrollPane(canvas);
+        canvasScrollPane.setPannable(true);
+        canvasScrollPane.setFitToWidth(false);
+        canvasScrollPane.setFitToHeight(false);
+        root.setCenter(canvasScrollPane);
         labelBox = new ComboBox<>();
         AppStyle.applyRoot(root);
         AppStyle.applyCanvas(canvas);
@@ -73,6 +91,18 @@ public class MainApp extends Application {
             else if (e.getCode() == KeyCode.DIGIT2) labelBox.getSelectionModel().select(1);
             else if (e.getCode() == KeyCode.DIGIT3) labelBox.getSelectionModel().select(2);
         });
+        scene.setOnScroll(e -> {
+            if (!e.isControlDown()) {
+                return;
+            }
+            if (e.getDeltaY() > 0) {
+                changeZoom(ImageCanvas.ZOOM_STEP);
+            } else if (e.getDeltaY() < 0) {
+                changeZoom(-ImageCanvas.ZOOM_STEP);
+            }
+            e.consume();
+        });
+        installPanHandlers();
 
         stage.setScene(scene);
         stage.setMinWidth(980);
@@ -135,25 +165,60 @@ public class MainApp extends Application {
             }
         });
 
+        reviewedCheckBox = new CheckBox(i18n.t("검수 완료", "Reviewed", "Geprüft"));
+        reviewedCheckBox.setSelected(isCurrentImageReviewed());
+        reviewedCheckBox.setOnAction(e -> {
+            File file = currentImageFile();
+            if (file != null) {
+                store.setReviewed(file.getAbsolutePath(), reviewedCheckBox.isSelected());
+                updateStats();
+            }
+        });
+
+        Button zoomOutBtn = new Button("-");
+        zoomOutBtn.setOnAction(e -> changeZoom(-ImageCanvas.ZOOM_STEP));
+        zoomResetBtn = new Button(zoomLabel());
+        zoomResetBtn.setOnAction(e -> {
+            canvas.resetZoom();
+            renderAnnotations();
+            updateZoomLabel();
+        });
+        Button zoomInBtn = new Button("+");
+        zoomInBtn.setOnAction(e -> changeZoom(ImageCanvas.ZOOM_STEP));
+
+        brightnessSlider = createAdjustmentSlider(canvas.getBrightness());
+        brightnessSlider.valueProperty().addListener((obs, oldValue, newValue) ->
+                canvas.setBrightness(newValue.doubleValue()));
+        contrastSlider = createAdjustmentSlider(canvas.getContrast());
+        contrastSlider.valueProperty().addListener((obs, oldValue, newValue) ->
+                canvas.setContrast(newValue.doubleValue()));
+        Button resetAdjustmentsBtn = new Button(i18n.t("보정 초기화", "Reset Adjustments", "Anpassungen zurücksetzen"));
+        resetAdjustmentsBtn.setOnAction(e -> resetImageAdjustments());
+
         Button saveBtn = new Button(i18n.t("JSON 내보내기", "JSON Export", "JSON Export"));
         saveBtn.setOnAction(e -> {
-            File dir = chooseDirectory(i18n.t("JSON 내보내기 폴더 선택", "Choose JSON export folder", "JSON-Exportordner wählen"));
-            if (dir != null) {
-                dialogs.showExportResult(
-                        i18n.t("JSON 내보내기", "JSON Export", "JSON Export"),
-                        ExportService.exportLabels(store, dir)
-                );
-            }
+            runExportWithValidation(
+                    i18n.t("JSON 내보내기", "JSON Export", "JSON Export"),
+                    i18n.t("JSON 내보내기 폴더 선택", "Choose JSON export folder", "JSON-Exportordner wählen"),
+                    dir -> ExportService.exportLabels(store, dir)
+            );
         });
         Button yoloBtn = new Button(i18n.t("YOLO 내보내기", "YOLO Export", "YOLO Export"));
         yoloBtn.setOnAction(e -> {
-            File dir = chooseDirectory(i18n.t("YOLO 내보내기 폴더 선택", "Choose YOLO export folder", "YOLO-Exportordner wählen"));
-            if (dir != null) {
-                dialogs.showExportResult(
-                        i18n.t("YOLO 내보내기", "YOLO Export", "YOLO Export"),
-                        ExportService.exportYolo(store, dir)
-                );
-            }
+            runExportWithValidation(
+                    i18n.t("YOLO 내보내기", "YOLO Export", "YOLO Export"),
+                    i18n.t("YOLO 내보내기 폴더 선택", "Choose YOLO export folder", "YOLO-Exportordner wählen"),
+                    dir -> ExportService.exportYolo(store, dir)
+            );
+        });
+
+        Button cocoBtn = new Button(i18n.t("COCO 내보내기", "COCO Export", "COCO Export"));
+        cocoBtn.setOnAction(e -> {
+            runExportWithValidation(
+                    i18n.t("COCO 내보내기", "COCO Export", "COCO Export"),
+                    i18n.t("COCO 내보내기 폴더 선택", "Choose COCO export folder", "COCO-Exportordner wählen"),
+                    dir -> ExportService.exportCoco(store, dir)
+            );
         });
 
         Button saveProjectBtn = new Button(i18n.t("프로젝트 저장", "Save Project", "Projekt speichern"));
@@ -190,7 +255,9 @@ public class MainApp extends Application {
         });
         fileLabel = new Label(i18n.t("이미지 없음", "No image", "Kein Bild"));
         progressLabel = new Label("");
+        overviewLabel = new Label("");
         AppStyle.applyStatusLabel(progressLabel);
+        AppStyle.applyStatusLabel(overviewLabel);
 
         Button btnKo = new Button("한국어");
         Button btnEn = new Button("English");
@@ -209,22 +276,32 @@ public class MainApp extends Application {
         });
 
         AppStyle.applyPrimaryButton(openBtn);
-        for (Button button : List.of(prevBtn, nextBtn, applyLabelBtn, saveBtn, yoloBtn, saveProjectBtn, loadProjectBtn, btnKo, btnEn, btnDe)) {
+        for (Button button : List.of(prevBtn, nextBtn, applyLabelBtn, zoomOutBtn, zoomResetBtn, zoomInBtn,
+                resetAdjustmentsBtn, saveBtn, yoloBtn, cocoBtn, saveProjectBtn, loadProjectBtn, btnKo, btnEn, btnDe)) {
             AppStyle.applyButton(button);
         }
         AppStyle.applyComboBox(labelBox);
+        AppStyle.applySlider(brightnessSlider);
+        AppStyle.applySlider(contrastSlider);
 
         HBox langBar = new HBox(6, btnKo, btnEn, btnDe);
         AppStyle.applyToolbar(langBar);
-        HBox toolbar1 = new HBox(8, openBtn, prevBtn, fileLabel, nextBtn,
+        HBox toolbar1 = new HBox(8, openBtn, prevBtn, fileLabel, nextBtn, reviewedCheckBox,
                 new Label(i18n.t("라벨:", "Label:", "Label:")), labelBox, applyLabelBtn);
         AppStyle.applyToolbar(toolbar1);
 
-        HBox toolbar2 = new HBox(8, saveBtn, yoloBtn, saveProjectBtn, loadProjectBtn);
+        HBox toolbar2 = new HBox(8,
+                new Label(i18n.t("확대:", "Zoom:", "Zoom:")), zoomOutBtn, zoomResetBtn, zoomInBtn,
+                saveBtn, yoloBtn, cocoBtn, saveProjectBtn, loadProjectBtn);
         AppStyle.applyToolbar(toolbar2);
-        HBox statusBar = new HBox(20, progressLabel);
+        HBox toolbar3 = new HBox(8,
+                new Label(i18n.t("밝기:", "Brightness:", "Helligkeit:")), brightnessSlider,
+                new Label(i18n.t("대비:", "Contrast:", "Kontrast:")), contrastSlider,
+                resetAdjustmentsBtn);
+        AppStyle.applyToolbar(toolbar3);
+        HBox statusBar = new HBox(20, progressLabel, overviewLabel);
         AppStyle.applyStatusBar(statusBar);
-        VBox top = new VBox(langBar, toolbar1, toolbar2, statusBar);
+        VBox top = new VBox(langBar, toolbar1, toolbar2, toolbar3, statusBar);
         root.setTop(top);
         if (mainStage != null)
             mainStage.setTitle(i18n.t("OCT 라벨링 툴", "OCT Labeling Tool", "OCT Beschriftungswerkzeug"));
@@ -234,6 +311,22 @@ public class MainApp extends Application {
         DirectoryChooser dc = new DirectoryChooser();
         dc.setTitle(title);
         return dc.showDialog(mainStage);
+    }
+
+    private void runExportWithValidation(
+            String exportName,
+            String directoryTitle,
+            Function<File, ExportService.ExportResult> exportAction
+    ) {
+        DatasetValidationReport report = DatasetValidationReport.fromStore(store);
+        if (!dialogs.confirmValidationReport(exportName, report)) {
+            return;
+        }
+
+        File dir = chooseDirectory(directoryTitle);
+        if (dir != null) {
+            dialogs.showExportResult(exportName, exportAction.apply(dir));
+        }
     }
 
     private void loadProjectImages() {
@@ -266,6 +359,7 @@ public class MainApp extends Application {
     }
 
     private void updateStats() {
+        store.saveCurrent();
         int n = 0, s = 0, c = 0;
         for (Annotation ann : store.getCurrent()) {
             switch (ann.label) {
@@ -280,6 +374,121 @@ public class MainApp extends Application {
                     "  " + i18n.t("의심: ", "Suspicious: ", "Verdächtig: ") + s +
                     "  " + i18n.t("확실히 암: ", "Cancer: ", "Krebs: ") + c);
         }
+        updateOverviewStats();
+    }
+
+    private void updateOverviewStats() {
+        int totalNormal = 0;
+        int totalSuspicious = 0;
+        int totalCancer = 0;
+        for (ArrayList<Annotation> annotations : store.getAll().values()) {
+            for (Annotation ann : annotations) {
+                switch (ann.label) {
+                    case NORMAL -> totalNormal++;
+                    case SUSPICIOUS -> totalSuspicious++;
+                    case CONFIRMED_CANCER -> totalCancer++;
+                }
+            }
+        }
+
+        if (overviewLabel != null) {
+            overviewLabel.setText(i18n.t("전체: ", "Overall: ", "Gesamt: ") +
+                    store.getAll().size() + i18n.t(" 이미지", " images", " Bilder") +
+                    " / " + store.reviewedCount() + i18n.t(" 검수", " reviewed", " geprüft") +
+                    "   " + i18n.t("정상: ", "Normal: ", "Normal: ") + totalNormal +
+                    "  " + i18n.t("의심: ", "Suspicious: ", "Verdächtig: ") + totalSuspicious +
+                    "  " + i18n.t("암: ", "Cancer: ", "Krebs: ") + totalCancer);
+        }
+    }
+
+    private boolean isCurrentImageReviewed() {
+        File file = currentImageFile();
+        return file != null && store.isReviewed(file.getAbsolutePath());
+    }
+
+    private void updateReviewedControl() {
+        if (reviewedCheckBox != null) {
+            reviewedCheckBox.setSelected(isCurrentImageReviewed());
+        }
+    }
+
+    private void changeZoom(double delta) {
+        canvas.setZoomFactor(canvas.getZoomFactor() + delta);
+        renderAnnotations();
+        updateZoomLabel();
+    }
+
+    private void installPanHandlers() {
+        canvas.addEventFilter(MouseEvent.MOUSE_PRESSED, e -> {
+            if (!isPanGesture(e)) {
+                return;
+            }
+            lastPanX = e.getSceneX();
+            lastPanY = e.getSceneY();
+            e.consume();
+        });
+
+        canvas.addEventFilter(MouseEvent.MOUSE_DRAGGED, e -> {
+            if (!isPanGesture(e)) {
+                return;
+            }
+            double dx = e.getSceneX() - lastPanX;
+            double dy = e.getSceneY() - lastPanY;
+            panCanvas(dx, dy);
+            lastPanX = e.getSceneX();
+            lastPanY = e.getSceneY();
+            e.consume();
+        });
+    }
+
+    private boolean isPanGesture(MouseEvent e) {
+        return e.isMiddleButtonDown() || e.isAltDown();
+    }
+
+    private void panCanvas(double dx, double dy) {
+        Bounds viewport = canvasScrollPane.getViewportBounds();
+        Bounds content = canvas.getLayoutBounds();
+        double extraWidth = content.getWidth() - viewport.getWidth();
+        double extraHeight = content.getHeight() - viewport.getHeight();
+
+        if (extraWidth > 0) {
+            canvasScrollPane.setHvalue(clamp(canvasScrollPane.getHvalue() - dx / extraWidth, 0, 1));
+        }
+        if (extraHeight > 0) {
+            canvasScrollPane.setVvalue(clamp(canvasScrollPane.getVvalue() - dy / extraHeight, 0, 1));
+        }
+    }
+
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    private String zoomLabel() {
+        return Math.round(canvas.getZoomFactor() * 100) + "%";
+    }
+
+    private void updateZoomLabel() {
+        if (zoomResetBtn != null) {
+            zoomResetBtn.setText(zoomLabel());
+        }
+    }
+
+    private Slider createAdjustmentSlider(double initialValue) {
+        Slider slider = new Slider(ImageCanvas.MIN_ADJUSTMENT, ImageCanvas.MAX_ADJUSTMENT, initialValue);
+        slider.setBlockIncrement(0.05);
+        slider.setMajorTickUnit(0.5);
+        slider.setMinorTickCount(4);
+        return slider;
+    }
+
+    private void resetImageAdjustments() {
+        canvas.resetImageAdjustments();
+        if (brightnessSlider != null) {
+            brightnessSlider.setValue(canvas.getBrightness());
+        }
+        if (contrastSlider != null) {
+            contrastSlider.setValue(canvas.getContrast());
+        }
     }
 
     private void loadImage(int index) {
@@ -289,8 +498,18 @@ public class MainApp extends Application {
         }
         File file = imageFiles.get(index);
         store.loadFor(file.getAbsolutePath());
-        canvas.getImageView().setImage(new Image(file.toURI().toString()));
+        canvas.setImage(new Image(file.toURI().toString()));
         fileLabel.setText(file.getName());
+        updateReviewedControl();
+        renderAnnotations();
+        updateStats();
+    }
+
+    private void renderAnnotations() {
+        canvas.clearBoxes();
+        if (canvasController != null) {
+            canvasController.resetSelection();
+        }
         for (Annotation ann : store.getCurrent()) {
             Rectangle r = AnnotationGeometry.rectangleFromAnnotation(ann, canvas);
             Color color = ImageCanvas.getLabelColor(ann.label);
@@ -302,7 +521,6 @@ public class MainApp extends Application {
             canvas.addBox(r, t);
             canvas.updateTextPosition(canvas.getRects().size() - 1);
         }
-        updateStats();
     }
 
     public static void main(String[] args) {

@@ -1,5 +1,7 @@
 import javafx.scene.layout.Pane;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.paint.Color;
@@ -11,13 +13,26 @@ public class ImageCanvas extends Pane {
     private ImageView imageView;
     private ArrayList<Rectangle> rects = new ArrayList<>();
     private ArrayList<Text> texts = new ArrayList<>();
+    private double zoomFactor = 1.0;
+    private double brightness = 0.0;
+    private double contrast = 0.0;
+    private ColorAdjust colorAdjust = new ColorAdjust();
+
+    private static final double BASE_FIT_WIDTH = 800.0;
+    public static final double MIN_ZOOM = 0.25;
+    public static final double MAX_ZOOM = 4.0;
+    public static final double ZOOM_STEP = 0.25;
+    public static final double MIN_ADJUSTMENT = -1.0;
+    public static final double MAX_ADJUSTMENT = 1.0;
 
     public ImageCanvas() {
         imageView = new ImageView();
         imageView.setPreserveRatio(true);
-        imageView.setFitWidth(800);
+        imageView.setFitWidth(BASE_FIT_WIDTH);
+        imageView.setEffect(colorAdjust);
         getChildren().add(imageView);
         setFocusTraversable(true);
+        updateCanvasSize();
     }
 
     public ImageView getImageView() {
@@ -30,6 +45,56 @@ public class ImageCanvas extends Pane {
 
     public ArrayList<Text> getTexts() {
         return texts;
+    }
+
+    public void setImage(Image image) {
+        imageView.setImage(image);
+        applyZoom();
+    }
+
+    public double getZoomFactor() {
+        return zoomFactor;
+    }
+
+    public void zoomIn() {
+        setZoomFactor(zoomFactor + ZOOM_STEP);
+    }
+
+    public void zoomOut() {
+        setZoomFactor(zoomFactor - ZOOM_STEP);
+    }
+
+    public void resetZoom() {
+        setZoomFactor(1.0);
+    }
+
+    public void setZoomFactor(double zoomFactor) {
+        this.zoomFactor = clamp(zoomFactor, MIN_ZOOM, MAX_ZOOM);
+        applyZoom();
+    }
+
+    public double getBrightness() {
+        return brightness;
+    }
+
+    public double getContrast() {
+        return contrast;
+    }
+
+    public void setBrightness(double brightness) {
+        this.brightness = clamp(brightness, MIN_ADJUSTMENT, MAX_ADJUSTMENT);
+        applyImageAdjustments();
+    }
+
+    public void setContrast(double contrast) {
+        this.contrast = clamp(contrast, MIN_ADJUSTMENT, MAX_ADJUSTMENT);
+        applyImageAdjustments();
+    }
+
+    public void resetImageAdjustments() {
+        brightness = 0.0;
+        contrast = 0.0;
+        applyImageAdjustments();
     }
 
     public void addBox(Rectangle r, Text t) {
@@ -84,6 +149,31 @@ public class ImageCanvas extends Pane {
             rect.setStrokeWidth(2);
             rect.getStrokeDashArray().clear();
         }
+    }
+
+    private void applyZoom() {
+        imageView.setFitWidth(BASE_FIT_WIDTH * zoomFactor);
+        updateCanvasSize();
+    }
+
+    private void applyImageAdjustments() {
+        colorAdjust.setBrightness(brightness);
+        colorAdjust.setContrast(contrast);
+    }
+
+    private void updateCanvasSize() {
+        double width = imageView.getFitWidth();
+        double height = width;
+        Image image = imageView.getImage();
+        if (image != null && image.getWidth() > 0) {
+            height = image.getHeight() * (width / image.getWidth());
+        }
+        setMinSize(width, height);
+        setPrefSize(width, height);
+    }
+
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     public static Color getLabelColor(LabelClass label) {

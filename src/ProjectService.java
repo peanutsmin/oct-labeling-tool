@@ -18,6 +18,7 @@ public class ProjectService {
             for (java.util.Map.Entry<String, ArrayList<Annotation>> entry : store.getAll().entrySet()) {
                 JsonObject imageObj = new JsonObject();
                 imageObj.addProperty("file", entry.getKey());
+                imageObj.addProperty("reviewed", store.isReviewed(entry.getKey()));
 
                 JsonArray annotations = new JsonArray();
                 for (Annotation ann : entry.getValue()) {
@@ -63,7 +64,6 @@ public class ProjectService {
             for (JsonElement imageEl : images) {
                 JsonObject imageObj = imageEl.getAsJsonObject();
                 String filePath = imageObj.get("file").getAsString();
-
                 ArrayList<Annotation> anns = new ArrayList<>();
                 JsonArray annotations = imageObj.getAsJsonArray("annotations");
                 for (JsonElement annEl : annotations) {
@@ -87,6 +87,12 @@ public class ProjectService {
 
             store.clear();
             store.getAll().putAll(loaded);
+            for (JsonElement imageEl : images) {
+                JsonObject imageObj = imageEl.getAsJsonObject();
+                if (imageObj.has("reviewed") && imageObj.get("reviewed").getAsBoolean()) {
+                    store.setReviewed(imageObj.get("file").getAsString(), true);
+                }
+            }
             return ProjectResult.success(new File(path), loaded.size(), labelCount);
         } catch (Exception e) {
             return ProjectResult.failure(new File(path), e);

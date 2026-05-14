@@ -4,6 +4,12 @@ src/*.class
 .DS_Store
 labels.json
 summary.json
+coco_annotations.json
 labels_yolo/
+classes.txt
+data.yaml
+images/
+!examples/sample_yolo/classes.txt
+!examples/sample_yolo/data.yaml
 project.json
 target/

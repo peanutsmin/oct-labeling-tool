@@ -1,3 +1,5 @@
+package com.peanutsmin.octlabeling;
+
 public class Annotation {
     public String file;
     public LabelClass label;

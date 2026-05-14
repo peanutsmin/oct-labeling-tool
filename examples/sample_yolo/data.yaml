@@ -1,0 +1,7 @@
+path: .
+train: images
+val: images
+names:
+  0: normal
+  1: suspicious
+  2: confirmed_cancer

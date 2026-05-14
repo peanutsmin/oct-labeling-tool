@@ -42,8 +42,10 @@ A lightweight desktop tool for annotating lung OCT images, designed to generate 
 - Export to YOLO format for object detection training
 - Export to COCO format for object detection datasets
 - Save summary statistics to `summary.json`
+- Save YOLO helper files: `classes.txt`, `data.yaml`, and an `images/` copy folder when source files are available
 - Choose export folders for JSON, YOLO, and COCO outputs
 - Project save/load using `project.json`, including reviewed image status
+- Project files preserve image width and height even for reviewed images with no bounding boxes
 - Coordinate clamping for safer dataset export
 - Automatic discard of bounding boxes smaller than 5×5 pixels
 
@@ -53,6 +55,7 @@ A lightweight desktop tool for annotating lung OCT images, designed to generate 
 - JavaFX 21
 - Maven
 - Gson
+- JUnit
 
 ### How to Run
 
@@ -68,23 +71,32 @@ A lightweight desktop tool for annotating lung OCT images, designed to generate 
 mvn javafx:run
 ```
 
+#### Build a runnable package
+
+```bash
+mvn package
+java -jar target/oct-labeling-tool-1.0-SNAPSHOT.jar
+```
+
+The package step creates the app jar and copies runtime dependencies into `target/lib`.
+
 #### Manual Compile
 
 ```bash
-javac --module-path /path/to/javafx/lib --add-modules javafx.controls src/*.java
-```
-
-#### Manual Run
-
-```bash
-java --module-path /path/to/javafx/lib --add-modules javafx.controls -cp src MainApp
+javac --module-path /path/to/javafx/lib --add-modules javafx.controls \
+  -cp /path/to/gson.jar \
+  src/main/java/com/peanutsmin/octlabeling/*.java
 ```
 
 #### macOS Manual Example
 
 ```bash
-javac --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.controls src/*.java
-java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.controls -cp src MainApp
+javac --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.controls \
+  -cp $HOME/.m2/repository/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar \
+  src/main/java/com/peanutsmin/octlabeling/*.java
+java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.controls \
+  -cp src/main/java:$HOME/.m2/repository/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar \
+  com.peanutsmin.octlabeling.MainApp
 ```
 
 ### Workflow
@@ -120,6 +132,15 @@ java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.contr
 ```
 
 #### YOLO Export
+
+YOLO export writes a dataset-style folder with:
+
+```txt
+labels_yolo/
+images/
+classes.txt
+data.yaml
+```
 
 ```txt
 1 0.332500 0.249700 0.180000 0.120000
@@ -192,9 +213,9 @@ These values are independent from the selected UI language.
 - Reviewed image status is saved and restored with project files.
 - Pre-export validation reports unreviewed images, empty images, invalid boxes, clipped boxes, tiny boxes, exportable label count, and skewed label distribution.
 - YOLO export uses normalized center coordinates: `x_center`, `y_center`, `width`, `height`.
-- COCO export uses pixel bounding boxes: `x`, `y`, `width`, `height`.
+- COCO export uses pixel bounding boxes: `x`, `y`, `width`, `height`, and keeps image dimensions for reviewed empty images.
 - JSON, YOLO, and COCO exports share the same coordinate clamping logic before writing files.
-- Export behavior is covered by JUnit tests, including out-of-bounds box clipping, COCO output, and locale-safe YOLO decimals.
+- Export behavior is covered by JUnit tests, including out-of-bounds box clipping, COCO output, empty-image metadata, and locale-safe YOLO decimals.
 - Bounding boxes smaller than 5×5 pixels are automatically discarded.
 
 ---
@@ -235,8 +256,10 @@ Ein leichtgewichtiges Desktop-Tool zur Annotation von Lungen-OCT-Bildern, entwic
 - YOLO-Format-Export für Object-Detection-Training
 - COCO-Format-Export für Object-Detection-Datensätze
 - Summary-Statistiken werden in `summary.json` gespeichert
+- YOLO-Hilfsdateien: `classes.txt`, `data.yaml` und ein `images/`-Kopierordner, wenn Quelldateien vorhanden sind
 - Exportordner für JSON-, YOLO- und COCO-Ausgaben auswählbar
 - Projekt speichern/laden mit `project.json`, inklusive geprüftem Bildstatus
+- Projektdateien behalten Bildbreite und Bildhöhe auch für geprüfte Bilder ohne Bounding Boxes
 - Koordinaten-Clamping für sicheren Datensatz-Export
 - Automatisches Verwerfen von Bounding Boxes kleiner als 5×5 Pixel
 
@@ -246,6 +269,7 @@ Ein leichtgewichtiges Desktop-Tool zur Annotation von Lungen-OCT-Bildern, entwic
 - JavaFX 21
 - Maven
 - Gson
+- JUnit
 
 ### Ausführen
 
@@ -261,16 +285,21 @@ Ein leichtgewichtiges Desktop-Tool zur Annotation von Lungen-OCT-Bildern, entwic
 mvn javafx:run
 ```
 
+#### Ausführbares Paket bauen
+
+```bash
+mvn package
+java -jar target/oct-labeling-tool-1.0-SNAPSHOT.jar
+```
+
+Der Paket-Build erstellt das App-Jar und kopiert Runtime-Abhängigkeiten nach `target/lib`.
+
 #### Manuell kompilieren
 
 ```bash
-javac --module-path /path/to/javafx/lib --add-modules javafx.controls src/*.java
-```
-
-#### Manuell ausführen
-
-```bash
-java --module-path /path/to/javafx/lib --add-modules javafx.controls -cp src MainApp
+javac --module-path /path/to/javafx/lib --add-modules javafx.controls \
+  -cp /path/to/gson.jar \
+  src/main/java/com/peanutsmin/octlabeling/*.java
 ```
 
 ### Workflow
@@ -306,6 +335,15 @@ java --module-path /path/to/javafx/lib --add-modules javafx.controls -cp src Mai
 ```
 
 #### YOLO-Export
+
+YOLO-Export schreibt einen dataset-artigen Ordner:
+
+```txt
+labels_yolo/
+images/
+classes.txt
+data.yaml
+```
 
 ```txt
 1 0.332500 0.249700 0.180000 0.120000
@@ -378,9 +416,9 @@ Diese Werte sind unabhängig von der gewählten UI-Sprache.
 - Der geprüfte Bildstatus wird mit Projektdateien gespeichert und wiederhergestellt.
 - Die Validierung vor dem Export meldet ungeprüfte Bilder, Bilder ohne Annotationen, ungültige Boxen, zugeschnittene Boxen, sehr kleine Boxen, exportierbare Label-Anzahl und unausgewogene Label-Verteilung.
 - YOLO-Export verwendet normalisierte Mittelpunkt-Koordinaten: `x_center`, `y_center`, `width`, `height`.
-- COCO-Export verwendet Pixel-Bounding-Boxes: `x`, `y`, `width`, `height`.
+- COCO-Export verwendet Pixel-Bounding-Boxes und behält Bilddimensionen für geprüfte leere Bilder: `x`, `y`, `width`, `height`.
 - JSON-, YOLO- und COCO-Export verwenden dieselbe Koordinatenbegrenzung vor dem Schreiben.
-- Das Exportverhalten wird durch JUnit-Tests geprüft, inklusive Clipping außerhalb des Bildbereichs, COCO-Ausgabe und locale-sicherer YOLO-Dezimalzahlen.
+- Das Exportverhalten wird durch JUnit-Tests geprüft, inklusive Clipping außerhalb des Bildbereichs, COCO-Ausgabe, Metadaten für leere Bilder und locale-sicherer YOLO-Dezimalzahlen.
 - Bounding Boxes kleiner als 5×5 Pixel werden automatisch verworfen.
 
 ---
@@ -421,8 +459,10 @@ AI 학습용 데이터셋 구축 과정을 직접 실험해보기 위해 이 툴
 - AI 객체탐지 학습용 YOLO format export
 - 객체탐지 데이터셋용 COCO format export
 - `summary.json`에 통계 저장
+- YOLO 보조 파일 저장: `classes.txt`, `data.yaml`, 원본 이미지가 존재할 경우 `images/` 복사 폴더
 - JSON/YOLO/COCO export 폴더 선택
 - 검수 완료 상태를 포함한 `project.json` 기반 프로젝트 저장/불러오기
+- bounding box가 없는 검수 완료 이미지도 프로젝트와 COCO export에서 이미지 너비/높이 유지
 - 안전한 데이터셋 export를 위한 좌표 clamp
 - 5×5 픽셀보다 작은 bounding box 자동 제외
 
@@ -432,6 +472,7 @@ AI 학습용 데이터셋 구축 과정을 직접 실험해보기 위해 이 툴
 - JavaFX 21
 - Maven
 - Gson
+- JUnit
 
 ### 실행 방법
 
@@ -447,23 +488,32 @@ AI 학습용 데이터셋 구축 과정을 직접 실험해보기 위해 이 툴
 mvn javafx:run
 ```
 
+#### 실행 가능한 패키지 빌드
+
+```bash
+mvn package
+java -jar target/oct-labeling-tool-1.0-SNAPSHOT.jar
+```
+
+`mvn package`는 앱 jar와 실행에 필요한 runtime dependency를 `target/lib`에 함께 복사합니다.
+
 #### 수동 컴파일
 
 ```bash
-javac --module-path /path/to/javafx/lib --add-modules javafx.controls src/*.java
-```
-
-#### 수동 실행
-
-```bash
-java --module-path /path/to/javafx/lib --add-modules javafx.controls -cp src MainApp
+javac --module-path /path/to/javafx/lib --add-modules javafx.controls \
+  -cp /path/to/gson.jar \
+  src/main/java/com/peanutsmin/octlabeling/*.java
 ```
 
 #### macOS 수동 실행 예시
 
 ```bash
-javac --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.controls src/*.java
-java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.controls -cp src MainApp
+javac --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.controls \
+  -cp $HOME/.m2/repository/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar \
+  src/main/java/com/peanutsmin/octlabeling/*.java
+java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.controls \
+  -cp src/main/java:$HOME/.m2/repository/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar \
+  com.peanutsmin.octlabeling.MainApp
 ```
 
 ### 사용 흐름
@@ -499,6 +549,15 @@ java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.contr
 ```
 
 #### YOLO Export
+
+YOLO export는 다음과 같은 dataset-style 폴더를 생성합니다:
+
+```txt
+labels_yolo/
+images/
+classes.txt
+data.yaml
+```
 
 ```txt
 1 0.332500 0.249700 0.180000 0.120000
@@ -570,7 +629,7 @@ confirmed_cancer = 확실히 암
 - 상태바에서 전체 이미지 수, 검수 완료 이미지 수, 라벨별 전체 개수를 확인할 수 있습니다.
 - export 전 검증은 미검수 이미지, annotation 없는 이미지, 유효하지 않은 박스, 이미지 경계에서 잘리는 박스, 5x5 픽셀보다 작은 박스, export 가능한 라벨 수, 한쪽으로 치우친 라벨 분포를 알려줍니다.
 - YOLO export는 정규화된 중심 좌표를 사용합니다: `x_center`, `y_center`, `width`, `height`.
-- COCO export는 픽셀 bounding box를 사용합니다: `x`, `y`, `width`, `height`.
+- COCO export는 픽셀 bounding box를 사용하며, bounding box가 없는 검수 이미지의 이미지 크기도 유지합니다: `x`, `y`, `width`, `height`.
 - JSON, YOLO, COCO export는 같은 좌표 clamp 로직을 공유합니다.
-- out-of-bounds box clipping, COCO 출력, locale-safe YOLO 소수점 출력은 JUnit 테스트로 검증합니다.
+- out-of-bounds box clipping, COCO 출력, 빈 이미지 메타데이터, locale-safe YOLO 소수점 출력은 JUnit 테스트로 검증합니다.
 - 5×5 픽셀보다 작은 bounding box는 자동으로 제외됩니다.

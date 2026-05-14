@@ -1,3 +1,5 @@
+package com.peanutsmin.octlabeling;
+
 public class I18n {
     private String lang = "en";
 

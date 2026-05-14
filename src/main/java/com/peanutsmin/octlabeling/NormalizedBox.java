@@ -1,3 +1,5 @@
+package com.peanutsmin.octlabeling;
+
 public class NormalizedBox {
     public final double x;
     public final double y;

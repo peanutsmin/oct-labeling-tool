@@ -4,6 +4,10 @@
   "images": [
     {
       "file": "/path/to/images/sample_001.png",
+      "file_name": "sample_001.png",
+      "image_width": 1024,
+      "image_height": 768,
+      "reviewed": true,
       "annotations": [
         {
           "label": "suspicious",
@@ -22,6 +26,10 @@
     },
     {
       "file": "/path/to/images/sample_002.png",
+      "file_name": "sample_002.png",
+      "image_width": 1024,
+      "image_height": 768,
+      "reviewed": false,
       "annotations": []
     }
   ]

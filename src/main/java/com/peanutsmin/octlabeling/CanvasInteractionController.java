@@ -1,3 +1,5 @@
+package com.peanutsmin.octlabeling;
+
 import javafx.geometry.Bounds;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseEvent;

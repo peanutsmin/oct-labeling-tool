@@ -1,3 +1,5 @@
+package com.peanutsmin.octlabeling;
+
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.stage.FileChooser;
@@ -497,8 +499,9 @@ public class MainApp extends Application {
             canvasController.resetSelection();
         }
         File file = imageFiles.get(index);
-        store.loadFor(file.getAbsolutePath());
-        canvas.setImage(new Image(file.toURI().toString()));
+        Image image = new Image(file.toURI().toString());
+        store.loadFor(file.getAbsolutePath(), (int) image.getWidth(), (int) image.getHeight());
+        canvas.setImage(image);
         fileLabel.setText(file.getName());
         updateReviewedControl();
         renderAnnotations();

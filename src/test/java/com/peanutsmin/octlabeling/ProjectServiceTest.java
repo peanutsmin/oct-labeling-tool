@@ -1,3 +1,5 @@
+package com.peanutsmin.octlabeling;
+
 import com.google.gson.JsonParser;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,6 +46,9 @@ public class ProjectServiceTest {
                     .get(0)
                     .getAsJsonObject();
             assertTrue(image.get("reviewed").getAsBoolean());
+            assertEquals("sample_001.png", image.get("file_name").getAsString());
+            assertEquals(1000, image.get("image_width").getAsInt());
+            assertEquals(1000, image.get("image_height").getAsInt());
 
             String label = image
                     .getAsJsonArray("annotations")
@@ -66,5 +71,7 @@ public class ProjectServiceTest {
         assertEquals(LabelClass.CONFIRMED_CANCER,
                 loadedStore.getAll().get("/images/sample_001.png").get(0).label);
         assertTrue(loadedStore.isReviewed("/images/sample_001.png"));
+        assertEquals(1000, loadedStore.getImageMetadata("/images/sample_001.png").width());
+        assertEquals(1000, loadedStore.getImageMetadata("/images/sample_001.png").height());
     }
 }

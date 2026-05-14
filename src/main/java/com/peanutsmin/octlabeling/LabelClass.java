@@ -1,3 +1,5 @@
+package com.peanutsmin.octlabeling;
+
 public enum LabelClass {
     NORMAL(0, "normal", "정상", "Normal", "Normal"),
     SUSPICIOUS(1, "suspicious", "의심", "Suspicious", "Verdächtig"),

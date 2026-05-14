@@ -1,3 +1,5 @@
+package com.peanutsmin.octlabeling;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -63,12 +65,36 @@ public class ExportServiceTest {
         }
 
         assertTrue(result.isSuccess());
-        assertEquals(new File(outputDir, "labels_yolo").getAbsolutePath(), result.getOutputPath().getAbsolutePath());
+        assertEquals(outputDir.getAbsolutePath(), result.getOutputPath().getAbsolutePath());
         assertEquals(1, result.getTotalLabels());
 
         File yoloFile = new File(outputDir, "labels_yolo/sample_001.txt");
         assertTrue(yoloFile.isFile());
         assertEquals("1 0.300000 0.400000 0.200000 0.200000", Files.readString(yoloFile.toPath()).trim());
+        assertTrue(new File(outputDir, "classes.txt").isFile());
+        assertTrue(new File(outputDir, "data.yaml").isFile());
+        assertTrue(Files.readString(new File(outputDir, "classes.txt").toPath()).contains("confirmed_cancer"));
+        assertTrue(Files.readString(new File(outputDir, "data.yaml").toPath()).contains("train: images"));
+    }
+
+    @Test
+    public void exportsCocoImageDimensionsForEmptyReviewedImages() throws Exception {
+        AnnotationStore store = new AnnotationStore();
+        store.loadFor("/images/empty.png", 640, 480);
+        store.setReviewed("/images/empty.png", true);
+        File outputDir = temp.newFolder("empty-coco-export");
+
+        ExportService.ExportResult result = ExportService.exportCoco(store, outputDir);
+
+        assertTrue(result.isSuccess());
+        assertEquals(0, result.getTotalLabels());
+        try (FileReader reader = new FileReader(new File(outputDir, "coco_annotations.json"))) {
+            JsonObject image = JsonParser.parseReader(reader).getAsJsonObject()
+                    .getAsJsonArray("images").get(0).getAsJsonObject();
+            assertEquals("empty.png", image.get("file_name").getAsString());
+            assertEquals(640, image.get("width").getAsInt());
+            assertEquals(480, image.get("height").getAsInt());
+        }
     }
 
     @Test
@@ -154,7 +180,7 @@ public class ExportServiceTest {
 
     private AnnotationStore sampleStore() {
         AnnotationStore store = new AnnotationStore();
-        store.loadFor("/images/sample_001.png");
+        store.loadFor("/images/sample_001.png", 1000, 1000);
         store.addAnnotation(new Annotation(
                 "sample_001.png",
                 LabelClass.SUSPICIOUS,

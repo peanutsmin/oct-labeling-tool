@@ -1,3 +1,5 @@
+package com.peanutsmin.octlabeling;
+
 import com.google.gson.*;
 import java.io.*;
 import java.time.LocalDateTime;
@@ -16,8 +18,12 @@ public class ProjectService {
 
             JsonArray images = new JsonArray();
             for (java.util.Map.Entry<String, ArrayList<Annotation>> entry : store.getAll().entrySet()) {
+                ImageMetadata metadata = store.getImageMetadata(entry.getKey());
                 JsonObject imageObj = new JsonObject();
                 imageObj.addProperty("file", entry.getKey());
+                imageObj.addProperty("file_name", metadata.fileName());
+                imageObj.addProperty("image_width", metadata.width());
+                imageObj.addProperty("image_height", metadata.height());
                 imageObj.addProperty("reviewed", store.isReviewed(entry.getKey()));
 
                 JsonArray annotations = new JsonArray();
@@ -86,17 +92,33 @@ public class ProjectService {
             }
 
             store.clear();
-            store.getAll().putAll(loaded);
             for (JsonElement imageEl : images) {
                 JsonObject imageObj = imageEl.getAsJsonObject();
+                String filePath = imageObj.get("file").getAsString();
+                int imageWidth = optionalInt(imageObj, "image_width", inferWidth(loaded.get(filePath)));
+                int imageHeight = optionalInt(imageObj, "image_height", inferHeight(loaded.get(filePath)));
+                store.registerImage(filePath, imageWidth, imageHeight);
+                store.getAll().put(filePath, loaded.get(filePath));
                 if (imageObj.has("reviewed") && imageObj.get("reviewed").getAsBoolean()) {
-                    store.setReviewed(imageObj.get("file").getAsString(), true);
+                    store.setReviewed(filePath, true);
                 }
             }
             return ProjectResult.success(new File(path), loaded.size(), labelCount);
         } catch (Exception e) {
             return ProjectResult.failure(new File(path), e);
         }
+    }
+
+    private static int optionalInt(JsonObject object, String key, int fallback) {
+        return object.has(key) && !object.get(key).isJsonNull() ? object.get(key).getAsInt() : fallback;
+    }
+
+    private static int inferWidth(ArrayList<Annotation> annotations) {
+        return annotations == null || annotations.isEmpty() ? 0 : annotations.get(0).imageWidth;
+    }
+
+    private static int inferHeight(ArrayList<Annotation> annotations) {
+        return annotations == null || annotations.isEmpty() ? 0 : annotations.get(0).imageHeight;
     }
 
     public static class ProjectResult {

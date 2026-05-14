@@ -1,9 +1,13 @@
+package com.peanutsmin.octlabeling;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -58,18 +62,21 @@ public class ExportService {
 
     public static ExportResult exportYolo(AnnotationStore store, File outputDir) {
         store.saveCurrent();
-        File dir = new File(outputDir, "labels_yolo");
+        File labelDir = new File(outputDir, "labels_yolo");
+        File imageDir = new File(outputDir, "images");
 
         try {
             ensureDirectory(outputDir);
-            ensureDirectory(dir);
+            ensureDirectory(labelDir);
+            ensureDirectory(imageDir);
 
             for (java.util.Map.Entry<String, ArrayList<Annotation>> entry : store.getAll().entrySet()) {
                 String imagePath = entry.getKey();
                 String imageName = new File(imagePath).getName();
                 String baseName = imageName.replaceAll("\\.[^.]+$", "");
+                copyImageIfAvailable(new File(imagePath), new File(imageDir, imageName));
 
-                try (FileWriter fw = new FileWriter(new File(dir, baseName + ".txt"))) {
+                try (FileWriter fw = new FileWriter(new File(labelDir, baseName + ".txt"))) {
                     for (Annotation ann : entry.getValue()) {
                         int classId = ann.label.classId();
                         NormalizedBox box = NormalizedBox.fromAnnotation(ann);
@@ -79,9 +86,10 @@ public class ExportService {
                     }
                 }
             }
-            return ExportResult.success(dir, countExportableLabels(store));
+            writeYoloClassFiles(outputDir);
+            return ExportResult.success(outputDir, countExportableLabels(store));
         } catch (Exception e) {
-            return ExportResult.failure(dir, e);
+            return ExportResult.failure(outputDir, e);
         }
     }
 
@@ -108,15 +116,9 @@ public class ExportService {
 
             for (Map.Entry<String, ArrayList<Annotation>> entry : entries) {
                 ArrayList<Annotation> annotations = entry.getValue();
-                int imageWidth = 0;
-                int imageHeight = 0;
-                if (!annotations.isEmpty()) {
-                    imageWidth = annotations.get(0).imageWidth;
-                    imageHeight = annotations.get(0).imageHeight;
-                }
+                ImageMetadata metadata = store.getImageMetadata(entry.getKey());
 
-                String imageName = new File(entry.getKey()).getName();
-                coco.images.add(new CocoImage(imageId, imageName, imageWidth, imageHeight));
+                coco.images.add(new CocoImage(imageId, metadata.fileName(), metadata.width(), metadata.height()));
 
                 for (Annotation ann : annotations) {
                     NormalizedBox box = NormalizedBox.fromAnnotation(ann);
@@ -146,6 +148,31 @@ public class ExportService {
         }
         if (!dir.isDirectory()) {
             throw new IOException("Output path is not a directory: " + dir.getAbsolutePath());
+        }
+    }
+
+    private static void copyImageIfAvailable(File source, File target) throws IOException {
+        if (source.isFile()) {
+            Files.copy(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    private static void writeYoloClassFiles(File outputDir) throws IOException {
+        try (FileWriter fw = new FileWriter(new File(outputDir, "classes.txt"))) {
+            for (LabelClass label : LabelClass.values()) {
+                fw.write(label.exportValue());
+                fw.write(System.lineSeparator());
+            }
+        }
+
+        try (FileWriter fw = new FileWriter(new File(outputDir, "data.yaml"))) {
+            fw.write("path: .\n");
+            fw.write("train: images\n");
+            fw.write("val: images\n");
+            fw.write("names:\n");
+            for (LabelClass label : LabelClass.values()) {
+                fw.write(String.format(Locale.US, "  %d: %s%n", label.classId(), label.exportValue()));
+            }
         }
     }
 

@@ -7,6 +7,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 public class AppStyle {
     public static void applyRoot(BorderPane root) {
@@ -79,4 +80,8 @@ public class AppStyle {
     public static void applySlider(Slider slider) {
         slider.setPrefWidth(120);
     }
+    public static void applyTop(VBox top) {
+        top.setStyle("-fx-background-color: #2b2b2b;");
+    }
+
 }

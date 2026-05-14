@@ -9,7 +9,9 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.FileReader;
+import javax.imageio.ImageIO;
 import java.nio.file.Files;
+import java.util.List;
 import java.util.Locale;
 
 import static org.junit.Assert.assertEquals;
@@ -126,6 +128,42 @@ public class ExportServiceTest {
             assertEquals(40000, annotation.get("area").getAsInt());
             assertEquals("suspicious", category.get("name").getAsString());
         }
+    }
+
+    @Test
+    public void exportsMaskJsonAndPngFiles() throws Exception {
+        AnnotationStore store = new AnnotationStore();
+        store.loadFor("/images/masked.png", 10, 10);
+        store.addMask(new MaskAnnotation(
+                "masked.png",
+                LabelClass.CONFIRMED_CANCER,
+                List.of(
+                        new MaskPoint(0.1, 0.1),
+                        new MaskPoint(0.8, 0.1),
+                        new MaskPoint(0.8, 0.8),
+                        new MaskPoint(0.1, 0.8)
+                ),
+                10,
+                10
+        ));
+        File outputDir = temp.newFolder("mask-export");
+
+        ExportService.ExportResult result = ExportService.exportMasks(store, outputDir);
+
+        assertTrue(result.isSuccess());
+        assertEquals(1, result.getTotalLabels());
+
+        try (FileReader reader = new FileReader(new File(outputDir, "masks.json"))) {
+            JsonObject mask = JsonParser.parseReader(reader).getAsJsonArray().get(0).getAsJsonObject();
+            assertEquals("masked.png", mask.get("file").getAsString());
+            assertEquals("confirmed_cancer", mask.get("label").getAsString());
+            assertEquals(4, mask.getAsJsonArray("points").size());
+            assertEquals(10, mask.get("image_width").getAsInt());
+        }
+
+        File png = new File(outputDir, "masks_png/masked_mask.png");
+        assertTrue(png.isFile());
+        assertTrue(ImageIO.read(png).getRaster().getSample(5, 5, 0) > 0);
     }
 
     @Test

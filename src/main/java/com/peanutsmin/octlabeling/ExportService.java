@@ -3,6 +3,9 @@ package com.peanutsmin.octlabeling;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.awt.geom.Path2D;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -97,6 +100,39 @@ public class ExportService {
         return exportCoco(store, new File("."));
     }
 
+    public static ExportResult exportMasks(AnnotationStore store) {
+        return exportMasks(store, new File("."));
+    }
+
+    public static ExportResult exportMasks(AnnotationStore store, File outputDir) {
+        store.saveCurrent();
+        File jsonFile = new File(outputDir, "masks.json");
+        File pngDir = new File(outputDir, "masks_png");
+
+        try {
+            ensureDirectory(outputDir);
+            ensureDirectory(pngDir);
+
+            ArrayList<MaskExport> masks = new ArrayList<>();
+            for (Map.Entry<String, ArrayList<MaskAnnotation>> entry : store.getAllMasks().entrySet()) {
+                for (MaskAnnotation mask : entry.getValue()) {
+                    if (mask.isValid()) {
+                        masks.add(new MaskExport(entry.getKey(), mask));
+                    }
+                }
+                writeMaskPng(entry.getKey(), entry.getValue(), store.getImageMetadata(entry.getKey()), pngDir);
+            }
+
+            try (FileWriter fw = new FileWriter(jsonFile)) {
+                GSON.toJson(masks, fw);
+            }
+
+            return ExportResult.success(outputDir, masks.size());
+        } catch (Exception e) {
+            return ExportResult.failure(outputDir, e);
+        }
+    }
+
     public static ExportResult exportCoco(AnnotationStore store, File outputDir) {
         store.saveCurrent();
         File outputFile = new File(outputDir, "coco_annotations.json");
@@ -176,6 +212,43 @@ public class ExportService {
         }
     }
 
+    private static void writeMaskPng(
+            String imagePath,
+            ArrayList<MaskAnnotation> masks,
+            ImageMetadata metadata,
+            File pngDir
+    ) throws IOException {
+        if (metadata.width() <= 0 || metadata.height() <= 0) {
+            return;
+        }
+        BufferedImage image = new BufferedImage(metadata.width(), metadata.height(), BufferedImage.TYPE_BYTE_GRAY);
+        for (MaskAnnotation mask : masks) {
+            if (!mask.isValid()) continue;
+            Path2D path = new Path2D.Double();
+            for (int i = 0; i < mask.points.size(); i++) {
+                MaskPoint point = mask.points.get(i);
+                double x = point.x * metadata.width();
+                double y = point.y * metadata.height();
+                if (i == 0) {
+                    path.moveTo(x, y);
+                } else {
+                    path.lineTo(x, y);
+                }
+            }
+            path.closePath();
+            int sample = mask.label.classId() + 1;
+            for (int y = 0; y < metadata.height(); y++) {
+                for (int x = 0; x < metadata.width(); x++) {
+                    if (path.contains(x + 0.5, y + 0.5)) {
+                        image.getRaster().setSample(x, y, 0, sample);
+                    }
+                }
+            }
+        }
+        String baseName = new File(imagePath).getName().replaceAll("\\.[^.]+$", "");
+        ImageIO.write(image, "png", new File(pngDir, baseName + "_mask.png"));
+    }
+
     private static int countExportableLabels(AnnotationStore store) {
         int count = 0;
         for (ArrayList<Annotation> list : store.getAll().values()) {
@@ -250,6 +323,39 @@ public class ExportService {
             h_pixel = box.pixelH(ann.imageHeight);
             image_width = ann.imageWidth;
             image_height = ann.imageHeight;
+        }
+    }
+
+    private static class MaskExport {
+        String file;
+        String label;
+        ArrayList<MaskPointExport> points = new ArrayList<>();
+        ArrayList<int[]> points_pixel = new ArrayList<>();
+        int image_width;
+        int image_height;
+
+        MaskExport(String imagePath, MaskAnnotation mask) {
+            file = new File(imagePath).getName();
+            label = mask.label.exportValue();
+            image_width = mask.imageWidth;
+            image_height = mask.imageHeight;
+            for (MaskPoint point : mask.points) {
+                points.add(new MaskPointExport(point));
+                points_pixel.add(new int[]{
+                        (int) Math.round(point.x * mask.imageWidth),
+                        (int) Math.round(point.y * mask.imageHeight)
+                });
+            }
+        }
+    }
+
+    private static class MaskPointExport {
+        double x;
+        double y;
+
+        MaskPointExport(MaskPoint point) {
+            x = point.x;
+            y = point.y;
         }
     }
 

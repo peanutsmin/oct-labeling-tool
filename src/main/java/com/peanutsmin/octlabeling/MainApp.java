@@ -13,8 +13,11 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
+import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.scene.paint.Color;
@@ -39,6 +42,8 @@ public class MainApp extends Application {
     private Label overviewLabel;
     private CheckBox reviewedCheckBox;
     private ComboBox<String> labelBox;
+    private ToggleButton boxModeBtn;
+    private ToggleButton maskModeBtn;
     private Button zoomResetBtn;
     private Slider brightnessSlider;
     private Slider contrastSlider;
@@ -70,6 +75,7 @@ public class MainApp extends Application {
                 store,
                 this::currentImageFile,
                 () -> LabelClass.fromDisplay(labelBox.getValue()),
+                this::selectedAnnotationMode,
                 label -> label.display(i18n),
                 this::updateStats
         );
@@ -161,12 +167,19 @@ public class MainApp extends Application {
             LabelClass label = LabelClass.fromDisplay(labelBox.getValue());
             if (!canvasController.applySelectedLabel(label)) {
                 progressLabel.setText(i18n.t(
-                        "라벨을 적용할 박스를 먼저 선택하세요.",
-                        "Select a box before applying a label.",
-                        "Wählen Sie zuerst eine Box aus."
+                        "라벨을 적용할 박스나 마스크를 먼저 선택하세요.",
+                        "Select a box or mask before applying a label.",
+                        "Wählen Sie zuerst eine Box oder Maske aus."
                 ));
             }
         });
+
+        ToggleGroup modeGroup = new ToggleGroup();
+        boxModeBtn = new ToggleButton(i18n.t("박스", "Box", "Box"));
+        maskModeBtn = new ToggleButton(i18n.t("마스크", "Mask", "Maske"));
+        boxModeBtn.setToggleGroup(modeGroup);
+        maskModeBtn.setToggleGroup(modeGroup);
+        boxModeBtn.setSelected(true);
 
         reviewedCheckBox = new CheckBox(i18n.t("검수 완료", "Reviewed", "Geprüft"));
         reviewedCheckBox.setSelected(isCurrentImageReviewed());
@@ -221,6 +234,14 @@ public class MainApp extends Application {
                     i18n.t("COCO 내보내기", "COCO Export", "COCO Export"),
                     i18n.t("COCO 내보내기 폴더 선택", "Choose COCO export folder", "COCO-Exportordner wählen"),
                     dir -> ExportService.exportCoco(store, dir)
+            );
+        });
+        Button maskBtn = new Button(i18n.t("마스크 내보내기", "Mask Export", "Masken Export"));
+        maskBtn.setOnAction(e -> {
+            runExportWithValidation(
+                    i18n.t("마스크 내보내기", "Mask Export", "Masken Export"),
+                    i18n.t("마스크 내보내기 폴더 선택", "Choose mask export folder", "Masken-Exportordner wählen"),
+                    dir -> ExportService.exportMasks(store, dir)
             );
         });
 
@@ -280,9 +301,11 @@ public class MainApp extends Application {
 
         AppStyle.applyPrimaryButton(openBtn);
         for (Button button : List.of(prevBtn, nextBtn, applyLabelBtn, zoomOutBtn, zoomResetBtn, zoomInBtn,
-                resetAdjustmentsBtn, saveBtn, yoloBtn, cocoBtn, saveProjectBtn, loadProjectBtn, btnKo, btnEn, btnDe)) {
+                resetAdjustmentsBtn, saveBtn, yoloBtn, cocoBtn, maskBtn, saveProjectBtn, loadProjectBtn, btnKo, btnEn, btnDe)) {
             AppStyle.applyButton(button);
         }
+        AppStyle.applyButton(boxModeBtn);
+        AppStyle.applyButton(maskModeBtn);
         AppStyle.applyComboBox(labelBox);
         AppStyle.applySlider(brightnessSlider);
         AppStyle.applySlider(contrastSlider);
@@ -290,12 +313,13 @@ public class MainApp extends Application {
         HBox langBar = new HBox(6, btnKo, btnEn, btnDe);
         AppStyle.applyToolbar(langBar);
         HBox toolbar1 = new HBox(8, openBtn, prevBtn, fileLabel, nextBtn, reviewedCheckBox,
+                new Label(i18n.t("모드:", "Mode:", "Modus:")), boxModeBtn, maskModeBtn,
                 new Label(i18n.t("라벨:", "Label:", "Label:")), labelBox, applyLabelBtn);
         AppStyle.applyToolbar(toolbar1);
 
         HBox toolbar2 = new HBox(8,
                 new Label(i18n.t("확대:", "Zoom:", "Zoom:")), zoomOutBtn, zoomResetBtn, zoomInBtn,
-                saveBtn, yoloBtn, cocoBtn, saveProjectBtn, loadProjectBtn);
+                saveBtn, yoloBtn, cocoBtn, maskBtn, saveProjectBtn, loadProjectBtn);
         AppStyle.applyToolbar(toolbar2);
         HBox toolbar3 = new HBox(8,
                 new Label(i18n.t("밝기:", "Brightness:", "Helligkeit:")), brightnessSlider,
@@ -361,6 +385,10 @@ public class MainApp extends Application {
         return imageFiles.get(currentIndex);
     }
 
+    private AnnotationMode selectedAnnotationMode() {
+        return maskModeBtn != null && maskModeBtn.isSelected() ? AnnotationMode.MASK : AnnotationMode.BOX;
+    }
+
     private void updateStats() {
         store.saveCurrent();
         int n = 0, s = 0, c = 0;
@@ -371,11 +399,13 @@ public class MainApp extends Application {
                 case CONFIRMED_CANCER -> c++;
             }
         }
+        int maskCount = store.getCurrentMasks().size();
         if (!imageFiles.isEmpty()) {
             progressLabel.setText((currentIndex + 1) + " / " + imageFiles.size() +
                     "   " + i18n.t("정상: ", "Normal: ", "Normal: ") + n +
                     "  " + i18n.t("의심: ", "Suspicious: ", "Verdächtig: ") + s +
-                    "  " + i18n.t("확실히 암: ", "Cancer: ", "Krebs: ") + c);
+                    "  " + i18n.t("확실히 암: ", "Cancer: ", "Krebs: ") + c +
+                    "  " + i18n.t("마스크: ", "Masks: ", "Masken: ") + maskCount);
         }
         updateOverviewStats();
     }
@@ -398,9 +428,17 @@ public class MainApp extends Application {
             overviewLabel.setText(i18n.t("전체: ", "Overall: ", "Gesamt: ") +
                     store.getAll().size() + i18n.t(" 이미지", " images", " Bilder") +
                     " / " + store.reviewedCount() + i18n.t(" 검수", " reviewed", " geprüft") +
+                    " / " + store.totalMaskCount() + i18n.t(" 마스크", " masks", " Masken") +
                     "   " + i18n.t("정상: ", "Normal: ", "Normal: ") + totalNormal +
                     "  " + i18n.t("의심: ", "Suspicious: ", "Verdächtig: ") + totalSuspicious +
                     "  " + i18n.t("암: ", "Cancer: ", "Krebs: ") + totalCancer);
+        }
+        for (MaskAnnotation mask : store.getCurrentMasks()) {
+            Polygon polygon = AnnotationGeometry.polygonFromMask(mask, canvas);
+            Text text = new Text(mask.label.display(i18n));
+            text.setFill(ImageCanvas.getLabelColor(mask.label));
+            canvas.addMask(polygon, text);
+            canvas.updateMaskTextPosition(canvas.getMasks().size() - 1);
         }
     }
 

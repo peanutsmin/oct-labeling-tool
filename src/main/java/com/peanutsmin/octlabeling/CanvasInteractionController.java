@@ -4,10 +4,12 @@ import javafx.geometry.Bounds;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -16,17 +18,23 @@ public class CanvasInteractionController {
     private final AnnotationStore store;
     private final Supplier<File> currentImageFile;
     private final Supplier<LabelClass> selectedLabel;
+    private final Supplier<AnnotationMode> selectedMode;
     private final Function<LabelClass, String> labelDisplay;
     private final Runnable onAnnotationsChanged;
 
     private Rectangle currentRect;
+    private Polygon currentMask;
+    private ArrayList<Double> currentMaskPoints = new ArrayList<>();
     private DragMode dragMode = DragMode.NONE;
     private int selectedIndex = -1;
+    private int selectedMaskIndex = -1;
     private double startX, startY;
     private double dragStartX, dragStartY;
     private double startRectX, startRectY, startRectW, startRectH;
 
     private static final double MIN_BOX_SIZE = 5.0;
+    private static final int MIN_MASK_POINTS = 3;
+    private static final double MIN_MASK_POINT_DISTANCE = 4.0;
     private static final double RESIZE_HANDLE_SIZE = 8.0;
 
     private enum DragMode {
@@ -40,7 +48,8 @@ public class CanvasInteractionController {
         RESIZE_NE,
         RESIZE_NW,
         RESIZE_SE,
-        RESIZE_SW
+        RESIZE_SW,
+        MASK
     }
 
     public CanvasInteractionController(
@@ -48,6 +57,7 @@ public class CanvasInteractionController {
             AnnotationStore store,
             Supplier<File> currentImageFile,
             Supplier<LabelClass> selectedLabel,
+            Supplier<AnnotationMode> selectedMode,
             Function<LabelClass, String> labelDisplay,
             Runnable onAnnotationsChanged
     ) {
@@ -55,6 +65,7 @@ public class CanvasInteractionController {
         this.store = store;
         this.currentImageFile = currentImageFile;
         this.selectedLabel = selectedLabel;
+        this.selectedMode = selectedMode;
         this.labelDisplay = labelDisplay;
         this.onAnnotationsChanged = onAnnotationsChanged;
     }
@@ -68,12 +79,30 @@ public class CanvasInteractionController {
 
     public void resetSelection() {
         selectedIndex = -1;
+        selectedMaskIndex = -1;
         dragMode = DragMode.NONE;
         currentRect = null;
+        currentMask = null;
+        currentMaskPoints.clear();
         canvas.clearSelection();
     }
 
     public boolean applySelectedLabel(LabelClass label) {
+        if (selectedMaskIndex >= 0 && selectedMaskIndex < store.getCurrentMasks().size()
+                && selectedMaskIndex < canvas.getMasks().size()) {
+            MaskAnnotation mask = store.getCurrentMasks().get(selectedMaskIndex);
+            mask.label = label;
+            Polygon polygon = canvas.getMasks().get(selectedMaskIndex);
+            Text text = canvas.getMaskTexts().get(selectedMaskIndex);
+            AnnotationGeometry.styleMaskPolygon(polygon, label);
+            text.setText(labelDisplay.apply(label));
+            text.setFill(ImageCanvas.getLabelColor(label));
+            canvas.updateMaskTextPosition(selectedMaskIndex);
+            canvas.selectMask(selectedMaskIndex);
+            onAnnotationsChanged.run();
+            return true;
+        }
+
         if (selectedIndex < 0 || selectedIndex >= store.getCurrent().size()
                 || selectedIndex >= canvas.getRects().size()) {
             return false;
@@ -101,7 +130,23 @@ public class CanvasInteractionController {
         }
 
         if (e.isSecondaryButtonDown()) {
-            deleteBoxAt(e.getX(), e.getY());
+            deleteAnnotationAt(e.getX(), e.getY());
+            return;
+        }
+
+        if (selectedMode.get() == AnnotationMode.MASK) {
+            int maskIndex = canvas.findTopmostMask(e.getX(), e.getY());
+            if (maskIndex >= 0) {
+                selectedMaskIndex = maskIndex;
+                selectedIndex = -1;
+                canvas.selectMask(maskIndex);
+                return;
+            }
+            if (!AnnotationGeometry.isInsideImage(canvas, e.getX(), e.getY())) {
+                resetSelection();
+                return;
+            }
+            beginMask(e);
             return;
         }
 
@@ -122,6 +167,8 @@ public class CanvasInteractionController {
     private void handleDragged(MouseEvent e) {
         if (dragMode == DragMode.DRAW) {
             updateDrawingRect(e);
+        } else if (dragMode == DragMode.MASK) {
+            updateMask(e);
         } else if (isEditing()) {
             updateEditedRect(e);
         }
@@ -130,6 +177,8 @@ public class CanvasInteractionController {
     private void handleReleased(MouseEvent e) {
         if (dragMode == DragMode.DRAW) {
             finishDrawingRect();
+        } else if (dragMode == DragMode.MASK) {
+            finishMask();
         } else if (isEditing()) {
             finishEditingRect();
         }
@@ -139,6 +188,11 @@ public class CanvasInteractionController {
     private void handleMoved(MouseEvent e) {
         if (canvas.getImageView().getImage() == null || isEditing() || dragMode == DragMode.DRAW) {
             canvas.setCursor(Cursor.DEFAULT);
+            return;
+        }
+
+        if (selectedMode.get() == AnnotationMode.MASK) {
+            canvas.setCursor(AnnotationGeometry.isInsideImage(canvas, e.getX(), e.getY()) ? Cursor.CROSSHAIR : Cursor.DEFAULT);
             return;
         }
 
@@ -152,7 +206,20 @@ public class CanvasInteractionController {
         canvas.setCursor(cursorForMode(hoverMode));
     }
 
-    private void deleteBoxAt(double x, double y) {
+    private void deleteAnnotationAt(double x, double y) {
+        int maskIdx = canvas.findTopmostMask(x, y);
+        if (maskIdx >= 0) {
+            canvas.removeMask(maskIdx);
+            store.removeMask(maskIdx);
+            if (selectedMaskIndex == maskIdx) {
+                resetSelection();
+            } else if (selectedMaskIndex > maskIdx) {
+                selectedMaskIndex--;
+            }
+            onAnnotationsChanged.run();
+            return;
+        }
+
         int idx = canvas.findTopmostBox(x, y);
         if (idx < 0) return;
 
@@ -176,6 +243,71 @@ public class CanvasInteractionController {
         currentRect.setFill(Color.color(0.15, 0.39, 0.92, 0.12));
         currentRect.setStrokeWidth(2);
         canvas.getChildren().add(currentRect);
+    }
+
+    private void beginMask(MouseEvent e) {
+        resetSelection();
+        dragMode = DragMode.MASK;
+        currentMaskPoints.clear();
+        currentMask = new Polygon();
+        AnnotationGeometry.styleMaskPolygon(currentMask, selectedLabel.get());
+        currentMask.setMouseTransparent(true);
+        canvas.getChildren().add(currentMask);
+        addMaskPoint(e);
+    }
+
+    private void updateMask(MouseEvent e) {
+        addMaskPoint(e);
+    }
+
+    private void addMaskPoint(MouseEvent e) {
+        double x = AnnotationGeometry.clampX(canvas, e.getX());
+        double y = AnnotationGeometry.clampY(canvas, e.getY());
+        if (currentMaskPoints.size() >= 2) {
+            double previousX = currentMaskPoints.get(currentMaskPoints.size() - 2);
+            double previousY = currentMaskPoints.get(currentMaskPoints.size() - 1);
+            if (Math.hypot(x - previousX, y - previousY) < MIN_MASK_POINT_DISTANCE) {
+                return;
+            }
+        }
+        currentMaskPoints.add(x);
+        currentMaskPoints.add(y);
+        currentMask.getPoints().setAll(currentMaskPoints);
+    }
+
+    private void finishMask() {
+        if (currentMask == null) return;
+        if (currentMaskPoints.size() < MIN_MASK_POINTS * 2) {
+            canvas.getChildren().remove(currentMask);
+            currentMask = null;
+            currentMaskPoints.clear();
+            return;
+        }
+
+        File imageFile = currentImageFile.get();
+        if (imageFile == null) {
+            canvas.getChildren().remove(currentMask);
+            currentMask = null;
+            currentMaskPoints.clear();
+            return;
+        }
+
+        LabelClass label = selectedLabel.get();
+        MaskAnnotation mask = AnnotationGeometry.maskFromCanvasPoints(imageFile, label, currentMaskPoints, canvas);
+        store.addMask(mask);
+
+        currentMask.setMouseTransparent(false);
+        Text text = new Text(labelDisplay.apply(label));
+        text.setFill(ImageCanvas.getLabelColor(label));
+        canvas.getChildren().remove(currentMask);
+        canvas.addMask(currentMask, text);
+        selectedMaskIndex = canvas.getMasks().size() - 1;
+        selectedIndex = -1;
+        canvas.updateMaskTextPosition(selectedMaskIndex);
+        canvas.selectMask(selectedMaskIndex);
+        currentMask = null;
+        currentMaskPoints.clear();
+        onAnnotationsChanged.run();
     }
 
     private void updateDrawingRect(MouseEvent e) {
@@ -222,6 +354,7 @@ public class CanvasInteractionController {
 
     private void beginEdit(int boxIndex, MouseEvent e) {
         selectedIndex = boxIndex;
+        selectedMaskIndex = -1;
         canvas.selectBox(selectedIndex);
         Rectangle rect = canvas.getRects().get(selectedIndex);
         dragMode = resolveDragMode(rect, e.getX(), e.getY());
@@ -305,7 +438,7 @@ public class CanvasInteractionController {
     }
 
     private boolean isEditing() {
-        return dragMode != DragMode.NONE && dragMode != DragMode.DRAW;
+        return dragMode != DragMode.NONE && dragMode != DragMode.DRAW && dragMode != DragMode.MASK;
     }
 
     private Cursor cursorForMode(DragMode mode) {

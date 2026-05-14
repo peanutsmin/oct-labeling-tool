@@ -22,6 +22,19 @@
           "image_width": 1024,
           "image_height": 768
         }
+      ],
+      "masks": [
+        {
+          "label": "confirmed_cancer",
+          "image_width": 1024,
+          "image_height": 768,
+          "points": [
+            { "x": 0.4200, "y": 0.2800 },
+            { "x": 0.5200, "y": 0.3000 },
+            { "x": 0.5500, "y": 0.4100 },
+            { "x": 0.4400, "y": 0.4500 }
+          ]
+        }
       ]
     },
     {
@@ -30,7 +43,8 @@
       "image_width": 1024,
       "image_height": 768,
       "reviewed": false,
-      "annotations": []
+      "annotations": [],
+      "masks": []
     }
   ]
 }

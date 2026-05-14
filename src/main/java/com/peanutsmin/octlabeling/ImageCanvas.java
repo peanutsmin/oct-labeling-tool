@@ -5,6 +5,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.effect.ColorAdjust;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Polygon;
 import javafx.scene.text.Text;
 import javafx.scene.paint.Color;
 
@@ -15,6 +16,8 @@ public class ImageCanvas extends Pane {
     private ImageView imageView;
     private ArrayList<Rectangle> rects = new ArrayList<>();
     private ArrayList<Text> texts = new ArrayList<>();
+    private ArrayList<Polygon> masks = new ArrayList<>();
+    private ArrayList<Text> maskTexts = new ArrayList<>();
     private double zoomFactor = 1.0;
     private double brightness = 0.0;
     private double contrast = 0.0;
@@ -47,6 +50,14 @@ public class ImageCanvas extends Pane {
 
     public ArrayList<Text> getTexts() {
         return texts;
+    }
+
+    public ArrayList<Polygon> getMasks() {
+        return masks;
+    }
+
+    public ArrayList<Text> getMaskTexts() {
+        return maskTexts;
     }
 
     public void setImage(Image image) {
@@ -105,6 +116,12 @@ public class ImageCanvas extends Pane {
         getChildren().addAll(r, t);
     }
 
+    public void addMask(Polygon polygon, Text text) {
+        masks.add(polygon);
+        maskTexts.add(text);
+        getChildren().addAll(polygon, text);
+    }
+
     public void removeBox(int index) {
         getChildren().remove(rects.get(index));
         getChildren().remove(texts.get(index));
@@ -112,16 +129,36 @@ public class ImageCanvas extends Pane {
         texts.remove(index);
     }
 
+    public void removeMask(int index) {
+        getChildren().remove(masks.get(index));
+        getChildren().remove(maskTexts.get(index));
+        masks.remove(index);
+        maskTexts.remove(index);
+    }
+
     public void clearBoxes() {
         getChildren().removeAll(rects);
         getChildren().removeAll(texts);
+        getChildren().removeAll(masks);
+        getChildren().removeAll(maskTexts);
         rects.clear();
         texts.clear();
+        masks.clear();
+        maskTexts.clear();
     }
 
     public int findTopmostBox(double x, double y) {
         for (int idx = rects.size() - 1; idx >= 0; idx--) {
             if (rects.get(idx).contains(x, y)) {
+                return idx;
+            }
+        }
+        return -1;
+    }
+
+    public int findTopmostMask(double x, double y) {
+        for (int idx = masks.size() - 1; idx >= 0; idx--) {
+            if (masks.get(idx).contains(x, y)) {
                 return idx;
             }
         }
@@ -135,6 +172,14 @@ public class ImageCanvas extends Pane {
         text.setY(Math.max(14, rect.getY() - 4));
     }
 
+    public void updateMaskTextPosition(int index) {
+        Polygon polygon = masks.get(index);
+        Text text = maskTexts.get(index);
+        var bounds = polygon.getBoundsInParent();
+        text.setX(bounds.getMinX() + 4);
+        text.setY(Math.max(14, bounds.getMinY() - 4));
+    }
+
     public void selectBox(int index) {
         for (int i = 0; i < rects.size(); i++) {
             Rectangle rect = rects.get(i);
@@ -144,12 +189,33 @@ public class ImageCanvas extends Pane {
                 rect.getStrokeDashArray().addAll(8.0, 4.0);
             }
         }
+        clearMaskSelection();
+    }
+
+    public void selectMask(int index) {
+        clearSelection();
+        for (int i = 0; i < masks.size(); i++) {
+            Polygon polygon = masks.get(i);
+            polygon.setStrokeWidth(i == index ? 3 : 2);
+            polygon.getStrokeDashArray().clear();
+            if (i == index) {
+                polygon.getStrokeDashArray().addAll(8.0, 4.0);
+            }
+        }
     }
 
     public void clearSelection() {
         for (Rectangle rect : rects) {
             rect.setStrokeWidth(2);
             rect.getStrokeDashArray().clear();
+        }
+        clearMaskSelection();
+    }
+
+    private void clearMaskSelection() {
+        for (Polygon polygon : masks) {
+            polygon.setStrokeWidth(2);
+            polygon.getStrokeDashArray().clear();
         }
     }
 

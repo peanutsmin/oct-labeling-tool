@@ -26,7 +26,8 @@ public class DatasetValidationReport {
 
         for (var entry : store.getAll().entrySet()) {
             ArrayList<Annotation> annotations = entry.getValue();
-            if (annotations.isEmpty()) {
+            ArrayList<MaskAnnotation> masks = store.getAllMasks().getOrDefault(entry.getKey(), new ArrayList<>());
+            if (annotations.isEmpty() && masks.isEmpty()) {
                 report.emptyImages++;
             }
 
@@ -46,6 +47,15 @@ public class DatasetValidationReport {
                 }
                 if (box.pixelW(ann.imageWidth) < MIN_BOX_SIZE_PX || box.pixelH(ann.imageHeight) < MIN_BOX_SIZE_PX) {
                     report.tinyBoxes++;
+                }
+            }
+            for (MaskAnnotation mask : masks) {
+                report.totalLabels++;
+                report.countLabel(mask.label);
+                if (mask.isValid()) {
+                    report.exportableLabels++;
+                } else {
+                    report.invalidBoxes++;
                 }
             }
         }

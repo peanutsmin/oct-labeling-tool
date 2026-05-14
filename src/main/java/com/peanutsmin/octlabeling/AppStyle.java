@@ -1,6 +1,7 @@
 package com.peanutsmin.octlabeling;
 
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBase;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -39,7 +40,7 @@ public class AppStyle {
         );
     }
 
-    public static void applyButton(Button button) {
+    public static void applyButton(ButtonBase button) {
         button.setStyle(
                 "-fx-background-color: #ffffff;" +
                         "-fx-border-color: #cbd5e1;" +

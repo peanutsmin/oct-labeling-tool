@@ -2,9 +2,13 @@ package com.peanutsmin.octlabeling;
 
 import javafx.geometry.Bounds;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AnnotationGeometry {
 
@@ -47,6 +51,41 @@ public class AnnotationGeometry {
         );
     }
 
+    public static Polygon polygonFromMask(MaskAnnotation mask, ImageCanvas canvas) {
+        Bounds bounds = imageBounds(canvas);
+        Polygon polygon = new Polygon();
+        if (bounds == null) {
+            return polygon;
+        }
+        for (MaskPoint point : mask.points) {
+            polygon.getPoints().add(bounds.getMinX() + point.x * bounds.getWidth());
+            polygon.getPoints().add(bounds.getMinY() + point.y * bounds.getHeight());
+        }
+        styleMaskPolygon(polygon, mask.label);
+        return polygon;
+    }
+
+    public static MaskAnnotation maskFromCanvasPoints(File imageFile, LabelClass label, List<Double> canvasPoints, ImageCanvas canvas) {
+        Image image = canvas.getImageView().getImage();
+        int imageWidth = (int) image.getWidth();
+        int imageHeight = (int) image.getHeight();
+        Bounds bounds = imageBounds(canvas);
+        ArrayList<MaskPoint> normalizedPoints = new ArrayList<>();
+        for (int i = 0; i + 1 < canvasPoints.size(); i += 2) {
+            double x = (canvasPoints.get(i) - bounds.getMinX()) / bounds.getWidth();
+            double y = (canvasPoints.get(i + 1) - bounds.getMinY()) / bounds.getHeight();
+            normalizedPoints.add(new MaskPoint(clamp01(x), clamp01(y)));
+        }
+        return new MaskAnnotation(imageFile.getName(), label, normalizedPoints, imageWidth, imageHeight);
+    }
+
+    public static void styleMaskPolygon(Polygon polygon, LabelClass label) {
+        Color color = ImageCanvas.getLabelColor(label);
+        polygon.setStroke(color);
+        polygon.setFill(Color.color(color.getRed(), color.getGreen(), color.getBlue(), 0.22));
+        polygon.setStrokeWidth(2);
+    }
+
     public static void updateAnnotationFromRectangle(Annotation ann, Rectangle rect, ImageCanvas canvas) {
         NormalizedBox box = normalizedBox(rect, canvas);
         ann.x = box.x;
@@ -82,5 +121,9 @@ public class AnnotationGeometry {
 
     private static double clamp(double value, double min, double max) {
         return Math.max(min, Math.min(max, value));
+    }
+
+    private static double clamp01(double value) {
+        return clamp(value, 0.0, 1.0);
     }
 }

@@ -43,6 +43,25 @@ public class ProjectService {
                     annotations.add(annObj);
                 }
                 imageObj.add("annotations", annotations);
+
+                JsonArray masks = new JsonArray();
+                for (MaskAnnotation mask : store.getAllMasks().getOrDefault(entry.getKey(), new ArrayList<>())) {
+                    JsonObject maskObj = new JsonObject();
+                    maskObj.addProperty("label", mask.label.exportValue());
+                    maskObj.addProperty("image_width", mask.imageWidth);
+                    maskObj.addProperty("image_height", mask.imageHeight);
+
+                    JsonArray points = new JsonArray();
+                    for (MaskPoint point : mask.points) {
+                        JsonObject pointObj = new JsonObject();
+                        pointObj.addProperty("x", point.x);
+                        pointObj.addProperty("y", point.y);
+                        points.add(pointObj);
+                    }
+                    maskObj.add("points", points);
+                    masks.add(maskObj);
+                }
+                imageObj.add("masks", masks);
                 images.add(imageObj);
             }
             root.add("images", images);
@@ -51,7 +70,7 @@ public class ProjectService {
             try (FileWriter fw = new FileWriter(savePath)) {
                 fw.write(gson.toJson(root));
             }
-            return ProjectResult.success(new File(savePath), store.getAll().size(), store.totalCount());
+            return ProjectResult.success(new File(savePath), store.getAll().size(), store.totalCount() + store.totalMaskCount());
         } catch (Exception e) {
             return ProjectResult.failure(new File(savePath), e);
         }
@@ -65,6 +84,7 @@ public class ProjectService {
             }
 
             HashMap<String, ArrayList<Annotation>> loaded = new HashMap<>();
+            HashMap<String, ArrayList<MaskAnnotation>> loadedMasks = new HashMap<>();
             JsonArray images = root.getAsJsonArray("images");
             int labelCount = 0;
             for (JsonElement imageEl : images) {
@@ -89,6 +109,25 @@ public class ProjectService {
                 }
                 labelCount += anns.size();
                 loaded.put(filePath, anns);
+
+                ArrayList<MaskAnnotation> masks = new ArrayList<>();
+                JsonArray maskArray = imageObj.has("masks")
+                        ? imageObj.getAsJsonArray("masks")
+                        : new JsonArray();
+                for (JsonElement maskEl : maskArray) {
+                    JsonObject maskObj = maskEl.getAsJsonObject();
+                    LabelClass label = LabelClass.fromStoredValue(maskObj.get("label").getAsString());
+                    int iw = optionalInt(maskObj, "image_width", optionalInt(imageObj, "image_width", 0));
+                    int ih = optionalInt(maskObj, "image_height", optionalInt(imageObj, "image_height", 0));
+                    ArrayList<MaskPoint> points = new ArrayList<>();
+                    for (JsonElement pointEl : maskObj.getAsJsonArray("points")) {
+                        JsonObject pointObj = pointEl.getAsJsonObject();
+                        points.add(new MaskPoint(pointObj.get("x").getAsDouble(), pointObj.get("y").getAsDouble()));
+                    }
+                    masks.add(new MaskAnnotation(new File(filePath).getName(), label, points, iw, ih));
+                }
+                labelCount += masks.size();
+                loadedMasks.put(filePath, masks);
             }
 
             store.clear();
@@ -99,6 +138,7 @@ public class ProjectService {
                 int imageHeight = optionalInt(imageObj, "image_height", inferHeight(loaded.get(filePath)));
                 store.registerImage(filePath, imageWidth, imageHeight);
                 store.getAll().put(filePath, loaded.get(filePath));
+                store.getAllMasks().put(filePath, loadedMasks.get(filePath));
                 if (imageObj.has("reviewed") && imageObj.get("reviewed").getAsBoolean()) {
                     store.setReviewed(filePath, true);
                 }

@@ -8,9 +8,11 @@ import java.util.Map;
 
 public class AnnotationStore {
     private HashMap<String, ArrayList<Annotation>> store = new HashMap<>();
+    private HashMap<String, ArrayList<MaskAnnotation>> masks = new HashMap<>();
     private HashMap<String, ImageMetadata> images = new HashMap<>();
     private HashSet<String> reviewedImages = new HashSet<>();
     private ArrayList<Annotation> current = new ArrayList<>();
+    private ArrayList<MaskAnnotation> currentMasks = new ArrayList<>();
     private String currentPath = "";
 
     public void setCurrentPath(String path) {
@@ -21,18 +23,31 @@ public class AnnotationStore {
         return current;
     }
 
+    public ArrayList<MaskAnnotation> getCurrentMasks() {
+        return currentMasks;
+    }
+
     public void addAnnotation(Annotation ann) {
         current.add(ann);
+    }
+
+    public void addMask(MaskAnnotation mask) {
+        currentMasks.add(mask);
     }
 
     public void removeAnnotation(int index) {
         current.remove(index);
     }
 
+    public void removeMask(int index) {
+        currentMasks.remove(index);
+    }
+
     public void saveCurrent() {
         if (!currentPath.isEmpty()) {
             registerImage(currentPath, inferCurrentWidth(), inferCurrentHeight());
             store.put(currentPath, new ArrayList<>(current));
+            masks.put(currentPath, new ArrayList<>(currentMasks));
         }
     }
 
@@ -42,10 +57,14 @@ public class AnnotationStore {
 
     public void loadFor(String path, int imageWidth, int imageHeight) {
         current.clear();
+        currentMasks.clear();
         currentPath = path;
         registerImage(path, imageWidth, imageHeight);
         if (store.containsKey(path)) {
             current.addAll(store.get(path));
+        }
+        if (masks.containsKey(path)) {
+            currentMasks.addAll(masks.get(path));
         }
     }
 
@@ -58,18 +77,25 @@ public class AnnotationStore {
             images.put(path, new ImageMetadata(path, imageWidth, imageHeight));
         }
         store.putIfAbsent(path, new ArrayList<>());
+        masks.putIfAbsent(path, new ArrayList<>());
     }
 
     public void clear() {
         store.clear();
+        masks.clear();
         images.clear();
         reviewedImages.clear();
         current.clear();
+        currentMasks.clear();
         currentPath = "";
     }
 
     public HashMap<String, ArrayList<Annotation>> getAll() {
         return store;
+    }
+
+    public HashMap<String, ArrayList<MaskAnnotation>> getAllMasks() {
+        return masks;
     }
 
     public Map<String, ImageMetadata> getImages() {
@@ -123,11 +149,21 @@ public class AnnotationStore {
         return store.values().stream().mapToInt(List::size).sum();
     }
 
+    public int totalMaskCount() {
+        return masks.values().stream().mapToInt(List::size).sum();
+    }
+
     private int inferCurrentWidth() {
-        return current.isEmpty() ? 0 : current.get(0).imageWidth;
+        if (!current.isEmpty()) {
+            return current.get(0).imageWidth;
+        }
+        return currentMasks.isEmpty() ? 0 : currentMasks.get(0).imageWidth;
     }
 
     private int inferCurrentHeight() {
-        return current.isEmpty() ? 0 : current.get(0).imageHeight;
+        if (!current.isEmpty()) {
+            return current.get(0).imageHeight;
+        }
+        return currentMasks.isEmpty() ? 0 : currentMasks.get(0).imageHeight;
     }
 }

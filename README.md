@@ -14,7 +14,7 @@ Optical biopsy based on OCT is emerging as a radiation-free future diagnostic ap
 
 While general annotation tools like CVAT and Label Studio exist, I wanted to explore a lightweight desktop workflow specifically tailored to lung OCT lesion annotation.
 
-I built this tool as an experimental MVP to explore an AI dataset annotation workflow for lung OCT images. It currently supports JSON export, YOLO-format export, COCO-format export, project save/load, coordinate validation, zoomable image review, brightness/contrast preview controls, image-level review tracking, and pre-export dataset validation. Future plans include mask annotation and DICOM support.
+I built this tool as an experimental MVP to explore an AI dataset annotation workflow for lung OCT images. It currently supports common image files, uncompressed grayscale DICOM preview loading, JSON export, YOLO-format export, COCO-format export, project save/load, coordinate validation, zoomable image review, brightness/contrast preview controls, image-level review tracking, and pre-export dataset validation. Future plans include mask annotation.
 
 ### What I Built
 
@@ -24,7 +24,8 @@ A lightweight desktop tool for annotating lung OCT images, designed to generate 
 
 ### Features
 
-- Load multiple images (jpg, jpeg, png, bmp)
+- Load multiple images (jpg, jpeg, png, bmp, dcm, dicom, ima)
+- Preview uncompressed 8-bit and 16-bit grayscale DICOM images
 - Draw bounding boxes with mouse drag
 - Move and resize existing bounding boxes
 - Change labels on selected bounding boxes
@@ -55,6 +56,7 @@ A lightweight desktop tool for annotating lung OCT images, designed to generate 
 - JavaFX 21
 - Maven
 - Gson
+- dcm4che
 - JUnit
 
 ### How to Run
@@ -203,13 +205,15 @@ These values are independent from the selected UI language.
 
 - This tool is an experimental MVP and is not intended for clinical diagnosis.
 - It currently supports bounding-box annotation only.
-- DICOM support and mask-based annotation are planned for future versions.
+- DICOM support is limited to uncompressed single-channel grayscale images.
+- Mask-based annotation is planned for a future version.
 - Zoom changes only the display scale; exported coordinates remain normalized to the original image size and should still be validated before research use.
 - Brightness and contrast controls are display-only previews; exported image files and annotation coordinates are not modified.
 
 ### Validation
 
 - Project files are saved and loaded using Gson with user-visible success/failure alerts.
+- DICOM loading is covered by a generated uncompressed grayscale DICOM fixture test.
 - Reviewed image status is saved and restored with project files.
 - Pre-export validation reports unreviewed images, empty images, invalid boxes, clipped boxes, tiny boxes, exportable label count, and skewed label distribution.
 - YOLO export uses normalized center coordinates: `x_center`, `y_center`, `width`, `height`.
@@ -228,7 +232,7 @@ Während einer Vorlesung über Früherkennung von Lungenkrebs erfuhr ich, dass p
 
 Optische Biopsie auf OCT-Basis gilt als strahlungsfreier diagnostischer Ansatz der Zukunft. Allerdings können Lungen-OCT-Bilder durch begrenzte Eindringtiefe, Speckle-Rauschen, Bewegungsartefakte und schwierige Interpretierbarkeit beeinträchtigt sein. Dieses Projekt konzentriert sich deshalb auf einen ersten praktischen Schritt in Richtung AI-gestützter Analyse: einen strukturierten Annotation-Workflow für unvollkommene medizinische Bilddaten. Obwohl allgemeine Annotationstools wie CVAT und Label Studio existieren, wollte ich einen leichtgewichtigen Desktop-Workflow speziell für die Annotation von Lungen-OCT-Läsionen experimentell umsetzen.
 
-Dieses Tool wurde als experimentelles MVP entwickelt, um einen Workflow zur Erstellung von AI-Trainingsdatensätzen für Lungen-OCT-Bilder zu untersuchen. Es unterstützt aktuell JSON-Export, YOLO-Format-Export, COCO-Format-Export, Projekt-Speichern/Laden, Koordinatenvalidierung, zoombare Bildprüfung, Helligkeits- und Kontrastvorschau, Review-Tracking pro Bild sowie Datensatzvalidierung vor dem Export. Geplante Erweiterungen sind Mask-Annotation und DICOM-Unterstützung.
+Dieses Tool wurde als experimentelles MVP entwickelt, um einen Workflow zur Erstellung von AI-Trainingsdatensätzen für Lungen-OCT-Bilder zu untersuchen. Es unterstützt aktuell gängige Bilddateien, Vorschau unkomprimierter Graustufen-DICOM-Dateien, JSON-Export, YOLO-Format-Export, COCO-Format-Export, Projekt-Speichern/Laden, Koordinatenvalidierung, zoombare Bildprüfung, Helligkeits- und Kontrastvorschau, Review-Tracking pro Bild sowie Datensatzvalidierung vor dem Export. Geplante Erweiterungen sind Mask-Annotation.
 
 ### Was ich gebaut habe
 
@@ -238,7 +242,8 @@ Ein leichtgewichtiges Desktop-Tool zur Annotation von Lungen-OCT-Bildern, entwic
 
 ### Funktionen
 
-- Mehrere Bilder laden (jpg, jpeg, png, bmp)
+- Mehrere Bilder laden (jpg, jpeg, png, bmp, dcm, dicom, ima)
+- Unkomprimierte 8-Bit- und 16-Bit-Graustufen-DICOM-Bilder als Vorschau laden
 - Bounding Boxes per Maus-Drag zeichnen
 - Vorhandene Bounding Boxes verschieben und skalieren
 - Labels ausgewählter Bounding Boxes ändern
@@ -269,6 +274,7 @@ Ein leichtgewichtiges Desktop-Tool zur Annotation von Lungen-OCT-Bildern, entwic
 - JavaFX 21
 - Maven
 - Gson
+- dcm4che
 - JUnit
 
 ### Ausführen
@@ -406,13 +412,15 @@ Diese Werte sind unabhängig von der gewählten UI-Sprache.
 
 - Dieses Tool ist ein experimentelles MVP und nicht für klinische Diagnosen geeignet.
 - Aktuell wird nur Bounding-Box-Annotation unterstützt.
-- DICOM-Unterstützung und maskenbasierte Annotation sind für zukünftige Versionen geplant.
+- DICOM-Unterstützung ist auf unkomprimierte einkanalige Graustufenbilder beschränkt.
+- Maskenbasierte Annotation ist für eine zukünftige Version geplant.
 - Zoom ändert nur die Anzeigegröße; exportierte Koordinaten bleiben auf die Originalbildgröße normalisiert und sollten vor Forschungseinsatz weiterhin validiert werden.
 - Helligkeits- und Kontraststeuerung sind reine Anzeigevorschauen; exportierte Bilddateien und Annotation-Koordinaten werden nicht verändert.
 
 ### Validierung
 
 - Projektdateien werden mit Gson gespeichert und geladen, mit sichtbaren Erfolgs- und Fehlermeldungen.
+- DICOM-Laden wird durch einen generierten unkomprimierten Graustufen-DICOM-Test abgedeckt.
 - Der geprüfte Bildstatus wird mit Projektdateien gespeichert und wiederhergestellt.
 - Die Validierung vor dem Export meldet ungeprüfte Bilder, Bilder ohne Annotationen, ungültige Boxen, zugeschnittene Boxen, sehr kleine Boxen, exportierbare Label-Anzahl und unausgewogene Label-Verteilung.
 - YOLO-Export verwendet normalisierte Mittelpunkt-Koordinaten: `x_center`, `y_center`, `width`, `height`.
@@ -431,7 +439,7 @@ Diese Werte sind unabhängig von der gewählten UI-Sprache.
 
 OCT 기반 광학 생검은 방사선 부담이 없는 미래 진단 접근법으로 주목받고 있습니다. CVAT, Label Studio 같은 범용 라벨링 툴은 존재하지만, 폐 OCT 병변 라벨링에 맞춘 가벼운 데스크톱 워크플로우를 실험적으로 구현해보고 싶었습니다. 다만 폐 OCT 영상은 침투 깊이 제한, speckle noise, motion artifact, 해석 기준의 어려움 같은 문제가 있어 항상 선명하고 일관된 데이터로 얻어지지는 않습니다. 이 프로젝트는 이러한 한계 속에서 AI 보조 분석을 위한 첫 단계인 구조화된 annotation workflow를 실험하는 데 초점을 두었습니다.
 
-AI 학습용 데이터셋 구축 과정을 직접 실험해보기 위해 이 툴을 제작했습니다. 현재 JSON export, YOLO format export, COCO format export, 프로젝트 저장/불러오기, 좌표 검증, 확대 가능한 이미지 검토, 밝기/대비 미리보기, 이미지별 검수 상태 추적, 전체 라벨 통계 확인, export 전 데이터셋 검증 기능을 지원합니다. 향후 mask annotation, DICOM support를 추가할 예정입니다.
+AI 학습용 데이터셋 구축 과정을 직접 실험해보기 위해 이 툴을 제작했습니다. 현재 일반 이미지 파일, 비압축 grayscale DICOM 미리보기, JSON export, YOLO format export, COCO format export, 프로젝트 저장/불러오기, 좌표 검증, 확대 가능한 이미지 검토, 밝기/대비 미리보기, 이미지별 검수 상태 추적, 전체 라벨 통계 확인, export 전 데이터셋 검증 기능을 지원합니다. 향후 mask annotation을 추가할 예정입니다.
 
 ### 제작한 것
 
@@ -441,7 +449,8 @@ AI 학습용 데이터셋 구축 과정을 직접 실험해보기 위해 이 툴
 
 ### 기능
 
-- 여러 장 이미지 선택 (jpg, jpeg, png, bmp)
+- 여러 장 이미지 선택 (jpg, jpeg, png, bmp, dcm, dicom, ima)
+- 비압축 8-bit/16-bit grayscale DICOM 이미지 미리보기
 - 마우스 드래그로 bounding box 그리기
 - 기존 bounding box 이동 및 리사이즈
 - 선택한 bounding box 라벨 변경
@@ -472,6 +481,7 @@ AI 학습용 데이터셋 구축 과정을 직접 실험해보기 위해 이 툴
 - JavaFX 21
 - Maven
 - Gson
+- dcm4che
 - JUnit
 
 ### 실행 방법
@@ -618,13 +628,15 @@ confirmed_cancer = 확실히 암
 
 - 이 툴은 실험적 MVP이며 임상 진단 목적으로 사용할 수 없습니다.
 - 현재 bounding-box 방식의 annotation만 지원합니다.
-- DICOM 지원 및 mask 기반 annotation은 향후 추가 예정입니다.
+- DICOM 지원은 비압축 single-channel grayscale 이미지로 제한됩니다.
+- mask 기반 annotation은 향후 추가 예정입니다.
 - Zoom은 화면 표시 배율만 바꾸며, export 좌표는 원본 이미지 크기 기준으로 정규화됩니다. 연구용으로 사용하기 전에는 여전히 검증이 필요합니다.
 - 밝기/대비 조절은 화면 표시용 미리보기이며, export 이미지 파일과 annotation 좌표는 변경하지 않습니다.
 
 ### 검증
 
 - 프로젝트 파일은 Gson으로 저장하고 불러오며, 성공/실패를 UI Alert로 표시합니다.
+- DICOM 로딩은 테스트에서 생성한 비압축 grayscale DICOM fixture로 검증합니다.
 - 이미지별 검수 완료 상태는 project 파일에 저장되고 다시 불러올 수 있습니다.
 - 상태바에서 전체 이미지 수, 검수 완료 이미지 수, 라벨별 전체 개수를 확인할 수 있습니다.
 - export 전 검증은 미검수 이미지, annotation 없는 이미지, 유효하지 않은 박스, 이미지 경계에서 잘리는 박스, 5x5 픽셀보다 작은 박스, export 가능한 라벨 수, 한쪽으로 치우친 라벨 분포를 알려줍니다.

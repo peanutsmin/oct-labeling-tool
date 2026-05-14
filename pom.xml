@@ -15,6 +15,8 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javafx.version>21.0.2</javafx.version>
+        <dcm4che.version>5.34.3</dcm4che.version>
+        <slf4j.version>2.0.17</slf4j.version>
         <main.class>com.peanutsmin.octlabeling.MainApp</main.class>
     </properties>
 
@@ -35,12 +37,29 @@
             <version>${javafx.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.dcm4che</groupId>
+            <artifactId>dcm4che-core</artifactId>
+            <version>${dcm4che.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-nop</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
+    <repositories>
+        <repository>
+            <id>dcm4che</id>
+            <name>dcm4che Maven Repository</name>
+            <url>https://dcm4che.org/maven2/</url>
+        </repository>
+    </repositories>
     <build>
         <plugins>
             <plugin>

@@ -126,7 +126,8 @@ public class MainApp extends Application {
             FileChooser fc = new FileChooser();
             fc.getExtensionFilters().add(new FileChooser.ExtensionFilter(
                     i18n.t("이미지", "Images", "Bilder"),
-                    "*.png", "*.jpg", "*.JPG", "*.jpeg", "*.JPEG", "*.bmp"
+                    "*.png", "*.jpg", "*.JPG", "*.jpeg", "*.JPEG", "*.bmp",
+                    "*.dcm", "*.DCM", "*.dicom", "*.DICOM", "*.ima", "*.IMA"
             ));
             List<File> files = fc.showOpenMultipleDialog(mainStage);
             if (files != null && !files.isEmpty()) {
@@ -499,13 +500,29 @@ public class MainApp extends Application {
             canvasController.resetSelection();
         }
         File file = imageFiles.get(index);
-        Image image = new Image(file.toURI().toString());
+        Image image = loadDisplayImage(file);
         store.loadFor(file.getAbsolutePath(), (int) image.getWidth(), (int) image.getHeight());
         canvas.setImage(image);
         fileLabel.setText(file.getName());
         updateReviewedControl();
         renderAnnotations();
         updateStats();
+    }
+
+    private Image loadDisplayImage(File file) {
+        try {
+            if (DicomImageLoader.isDicom(file)) {
+                return DicomImageLoader.load(file);
+            }
+            return new Image(file.toURI().toString());
+        } catch (Exception e) {
+            progressLabel.setText(i18n.t(
+                    "이미지를 열 수 없습니다: ",
+                    "Could not open image: ",
+                    "Bild konnte nicht geöffnet werden: "
+            ) + e.getMessage());
+            return new Image(file.toURI().toString());
+        }
     }
 
     private void renderAnnotations() {

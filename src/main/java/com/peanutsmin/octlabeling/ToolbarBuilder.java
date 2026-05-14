@@ -95,7 +95,7 @@ public class ToolbarBuilder {
         contrastSlider.valueProperty().addListener((obs, oldVal, newVal) ->
             cb.onContrastChanged(newVal.doubleValue()));
 
-        AppStyle.applyLabelBox(labelBox);
+        AppStyle.applyComboBox(labelBox);
         AppStyle.applySlider(brightnessSlider);
         AppStyle.applySlider(contrastSlider);
     }

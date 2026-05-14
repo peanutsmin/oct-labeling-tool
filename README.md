@@ -1,6 +1,6 @@
 # OCT Labeling Tool
 
-**English** | [Deutsch](#deutsch) | [한국어](#한국어)
+**English** | [Deutsch](#deutsch) | [íêµ­ì´](#íêµ­ì´)
 
 ---
 
@@ -34,7 +34,7 @@ A lightweight desktop tool for annotating lung OCT images, designed to generate 
 - Pan around zoomed images with scrollbars, trackpad scrolling, Alt + drag, or middle-button drag
 - Preview brightness and contrast adjustments without modifying source images
 - Label regions: Normal / Suspicious / Confirmed Cancer
-- Keyboard shortcuts: ←/→ to navigate, 1/2/3 to select label
+- Keyboard shortcuts: â/â to navigate, 1/2/3 to select label
 - Labels persist when switching between images
 - Mark each image as reviewed and track overall dataset progress and label totals
 - Review a validation report before export
@@ -50,7 +50,7 @@ A lightweight desktop tool for annotating lung OCT images, designed to generate 
 - Project save/load using `project.json`, including reviewed image status
 - Project files preserve image width and height even for reviewed images with no bounding boxes
 - Coordinate clamping for safer dataset export
-- Automatic discard of bounding boxes smaller than 5×5 pixels
+- Automatic discard of bounding boxes smaller than 5Ã5 pixels
 
 ### Tech Stack
 
@@ -60,6 +60,19 @@ A lightweight desktop tool for annotating lung OCT images, designed to generate 
 - Gson
 - dcm4che
 - JUnit
+
+
+### Download
+
+Pre-built releases are available on the [Releases page](https://github.com/peanutsmin/oct-labeling-tool/releases).
+
+Download the latest `oct-labeling-tool-*.jar` and run it with:
+
+```bash
+java -jar oct-labeling-tool-*.jar
+```
+
+> **Requirements:** Java 21 and JavaFX 21 SDK must be installed. See [How to Run](#how-to-run) for details.
 
 ### How to Run
 
@@ -223,7 +236,7 @@ These values are independent from the selected UI language.
 - COCO export uses pixel bounding boxes: `x`, `y`, `width`, `height`, and keeps image dimensions for reviewed empty images.
 - JSON, YOLO, and COCO exports share the same coordinate clamping logic before writing files.
 - Export behavior is covered by JUnit tests, including out-of-bounds box clipping, COCO output, empty-image metadata, and locale-safe YOLO decimals.
-- Bounding boxes smaller than 5×5 pixels are automatically discarded.
+- Bounding boxes smaller than 5Ã5 pixels are automatically discarded.
 
 ---
 
@@ -231,15 +244,15 @@ These values are independent from the selected UI language.
 
 ### Hintergrund
 
-Während einer Vorlesung über Früherkennung von Lungenkrebs erfuhr ich, dass periphere Lungenläsionen, die im Low-dose-CT-Screening entdeckt werden, mit konventioneller Bronchoskopie sehr schwer zu biopsieren sind.
+WÃ¤hrend einer Vorlesung Ã¼ber FrÃ¼herkennung von Lungenkrebs erfuhr ich, dass periphere LungenlÃ¤sionen, die im Low-dose-CT-Screening entdeckt werden, mit konventioneller Bronchoskopie sehr schwer zu biopsieren sind.
 
-Optische Biopsie auf OCT-Basis gilt als strahlungsfreier diagnostischer Ansatz der Zukunft. Allerdings können Lungen-OCT-Bilder durch begrenzte Eindringtiefe, Speckle-Rauschen, Bewegungsartefakte und schwierige Interpretierbarkeit beeinträchtigt sein. Dieses Projekt konzentriert sich deshalb auf einen ersten praktischen Schritt in Richtung AI-gestützter Analyse: einen strukturierten Annotation-Workflow für unvollkommene medizinische Bilddaten. Obwohl allgemeine Annotationstools wie CVAT und Label Studio existieren, wollte ich einen leichtgewichtigen Desktop-Workflow speziell für die Annotation von Lungen-OCT-Läsionen experimentell umsetzen.
+Optische Biopsie auf OCT-Basis gilt als strahlungsfreier diagnostischer Ansatz der Zukunft. Allerdings kÃ¶nnen Lungen-OCT-Bilder durch begrenzte Eindringtiefe, Speckle-Rauschen, Bewegungsartefakte und schwierige Interpretierbarkeit beeintrÃ¤chtigt sein. Dieses Projekt konzentriert sich deshalb auf einen ersten praktischen Schritt in Richtung AI-gestÃ¼tzter Analyse: einen strukturierten Annotation-Workflow fÃ¼r unvollkommene medizinische Bilddaten. Obwohl allgemeine Annotationstools wie CVAT und Label Studio existieren, wollte ich einen leichtgewichtigen Desktop-Workflow speziell fÃ¼r die Annotation von Lungen-OCT-LÃ¤sionen experimentell umsetzen.
 
-Dieses Tool wurde als experimentelles MVP entwickelt, um einen Workflow zur Erstellung von AI-Trainingsdatensätzen für Lungen-OCT-Bilder zu untersuchen. Es unterstützt aktuell gängige Bilddateien, Vorschau unkomprimierter Graustufen-DICOM-Dateien, Bounding-Box-Annotation, Freihand-Polygonmasken, JSON-Export, YOLO-Format-Export, COCO-Format-Export, Masken-Export als JSON/PNG, Projekt-Speichern/Laden, Koordinatenvalidierung, zoombare Bildprüfung, Helligkeits- und Kontrastvorschau, Review-Tracking pro Bild sowie Datensatzvalidierung vor dem Export.
+Dieses Tool wurde als experimentelles MVP entwickelt, um einen Workflow zur Erstellung von AI-TrainingsdatensÃ¤tzen fÃ¼r Lungen-OCT-Bilder zu untersuchen. Es unterstÃ¼tzt aktuell gÃ¤ngige Bilddateien, Vorschau unkomprimierter Graustufen-DICOM-Dateien, Bounding-Box-Annotation, Freihand-Polygonmasken, JSON-Export, YOLO-Format-Export, COCO-Format-Export, Masken-Export als JSON/PNG, Projekt-Speichern/Laden, Koordinatenvalidierung, zoombare BildprÃ¼fung, Helligkeits- und Kontrastvorschau, Review-Tracking pro Bild sowie Datensatzvalidierung vor dem Export.
 
 ### Was ich gebaut habe
 
-Ein leichtgewichtiges Desktop-Tool zur Annotation von Lungen-OCT-Bildern, entwickelt zur Erstellung gelabelter Datensätze für zukünftiges AI-Training.
+Ein leichtgewichtiges Desktop-Tool zur Annotation von Lungen-OCT-Bildern, entwickelt zur Erstellung gelabelter DatensÃ¤tze fÃ¼r zukÃ¼nftiges AI-Training.
 
 ![Screenshot](screenshot.png)
 
@@ -250,28 +263,28 @@ Ein leichtgewichtiges Desktop-Tool zur Annotation von Lungen-OCT-Bildern, entwic
 - Bounding Boxes per Maus-Drag zeichnen
 - Vorhandene Bounding Boxes verschieben und skalieren
 - Freihand-Polygonmasken im Maskenmodus zeichnen
-- Labels ausgewählter Bounding Boxes oder Masken ändern
+- Labels ausgewÃ¤hlter Bounding Boxes oder Masken Ã¤ndern
 - Per Toolbar oder Ctrl + Mausrad hinein- und herauszoomen
 - In gezoomten Bildern per Scrollbar, Trackpad, Alt + Drag oder mittlerer Maustaste navigieren
-- Helligkeit und Kontrast als Vorschau anpassen, ohne Quelldateien zu verändern
-- Regionen beschriften: Normal / Verdächtig / Bestätigter Krebs
-- Tastaturkürzel: ←/→ navigieren, 1/2/3 Label wählen
+- Helligkeit und Kontrast als Vorschau anpassen, ohne Quelldateien zu verÃ¤ndern
+- Regionen beschriften: Normal / VerdÃ¤chtig / BestÃ¤tigter Krebs
+- TastaturkÃ¼rzel: â/â navigieren, 1/2/3 Label wÃ¤hlen
 - Labels bleiben beim Wechsel zwischen Bildern erhalten
-- Bilder als geprüft markieren und Gesamtfortschritt sowie Label-Gesamtzahlen verfolgen
-- Vor dem Export einen Validierungsbericht prüfen
-- Rechtsklick oder Zwei-Finger-Tap zum Löschen einer Box
-- Mehrsprachige Oberfläche: Koreanisch / Englisch / Deutsch
+- Bilder als geprÃ¼ft markieren und Gesamtfortschritt sowie Label-Gesamtzahlen verfolgen
+- Vor dem Export einen Validierungsbericht prÃ¼fen
+- Rechtsklick oder Zwei-Finger-Tap zum LÃ¶schen einer Box
+- Mehrsprachige OberflÃ¤che: Koreanisch / Englisch / Deutsch
 - JSON-Export mit normalisierten Koordinaten
-- YOLO-Format-Export für Object-Detection-Training
-- COCO-Format-Export für Object-Detection-Datensätze
+- YOLO-Format-Export fÃ¼r Object-Detection-Training
+- COCO-Format-Export fÃ¼r Object-Detection-DatensÃ¤tze
 - Segmentierungsmasken als `masks.json` und Graustufen-PNGs exportieren
 - Summary-Statistiken werden in `summary.json` gespeichert
 - YOLO-Hilfsdateien: `classes.txt`, `data.yaml` und ein `images/`-Kopierordner, wenn Quelldateien vorhanden sind
-- Exportordner für JSON-, YOLO- und COCO-Ausgaben auswählbar
-- Projekt speichern/laden mit `project.json`, inklusive geprüftem Bildstatus
-- Projektdateien behalten Bildbreite und Bildhöhe auch für geprüfte Bilder ohne Bounding Boxes
-- Koordinaten-Clamping für sicheren Datensatz-Export
-- Automatisches Verwerfen von Bounding Boxes kleiner als 5×5 Pixel
+- Exportordner fÃ¼r JSON-, YOLO- und COCO-Ausgaben auswÃ¤hlbar
+- Projekt speichern/laden mit `project.json`, inklusive geprÃ¼ftem Bildstatus
+- Projektdateien behalten Bildbreite und BildhÃ¶he auch fÃ¼r geprÃ¼fte Bilder ohne Bounding Boxes
+- Koordinaten-Clamping fÃ¼r sicheren Datensatz-Export
+- Automatisches Verwerfen von Bounding Boxes kleiner als 5Ã5 Pixel
 
 ### Technologie
 
@@ -282,7 +295,7 @@ Ein leichtgewichtiges Desktop-Tool zur Annotation von Lungen-OCT-Bildern, entwic
 - dcm4che
 - JUnit
 
-### Ausführen
+### AusfÃ¼hren
 
 #### Voraussetzungen
 
@@ -290,20 +303,20 @@ Ein leichtgewichtiges Desktop-Tool zur Annotation von Lungen-OCT-Bildern, entwic
 - JavaFX 21 SDK
 - Maven
 
-#### Mit Maven ausführen
+#### Mit Maven ausfÃ¼hren
 
 ```bash
 mvn javafx:run
 ```
 
-#### Ausführbares Paket bauen
+#### AusfÃ¼hrbares Paket bauen
 
 ```bash
 mvn package
 java -jar target/oct-labeling-tool-1.0-SNAPSHOT.jar
 ```
 
-Der Paket-Build erstellt das App-Jar und kopiert Runtime-Abhängigkeiten nach `target/lib`.
+Der Paket-Build erstellt das App-Jar und kopiert Runtime-AbhÃ¤ngigkeiten nach `target/lib`.
 
 #### Manuell kompilieren
 
@@ -317,12 +330,12 @@ javac --module-path /path/to/javafx/lib --add-modules javafx.controls \
 
 1. OCT-Bilder laden
 2. Bounding Boxes per Maus-Drag zeichnen
-3. Label zuweisen: Normal / Verdächtig / Bestätigter Krebs
-4. Geprüfte Bilder markieren und Gesamtfortschritt kontrollieren
+3. Label zuweisen: Normal / VerdÃ¤chtig / BestÃ¤tigter Krebs
+4. GeprÃ¼fte Bilder markieren und Gesamtfortschritt kontrollieren
 5. Projekt als `project.json` speichern
-6. Projekt erneut öffnen und Annotationen fortsetzen oder korrigieren
-7. Validierungsbericht vor dem Export prüfen
-8. Annotationen als JSON, YOLO- oder COCO-Format für AI-Training exportieren
+6. Projekt erneut Ã¶ffnen und Annotationen fortsetzen oder korrigieren
+7. Validierungsbericht vor dem Export prÃ¼fen
+8. Annotationen als JSON, YOLO- oder COCO-Format fÃ¼r AI-Training exportieren
 
 ### Export-Beispiele
 
@@ -370,8 +383,8 @@ Klassen-Zuordnung:
 
 ```txt
 0 = Normal
-1 = Verdächtig
-2 = Bestätigter Krebs
+1 = VerdÃ¤chtig
+2 = BestÃ¤tigter Krebs
 ```
 
 #### COCO-Export
@@ -407,83 +420,83 @@ Der JSON-Export verwendet stabile maschinenlesbare Labels:
 
 ```txt
 normal = Normal
-suspicious = Verdächtig
-confirmed_cancer = Bestätigter Krebs
+suspicious = VerdÃ¤chtig
+confirmed_cancer = BestÃ¤tigter Krebs
 ```
 
-Diese Werte sind unabhängig von der gewählten UI-Sprache.
+Diese Werte sind unabhÃ¤ngig von der gewÃ¤hlten UI-Sprache.
 
-### Einschränkungen
+### EinschrÃ¤nkungen
 
-- Dieses Tool ist ein experimentelles MVP und nicht für klinische Diagnosen geeignet.
-- Aktuell werden Bounding Boxes und Freihand-Polygonmasken unterstützt.
-- DICOM-Unterstützung ist auf unkomprimierte einkanalige Graustufenbilder beschränkt.
-- Maskenexport schreibt pro Bild eine Graustufen-PNG mit Klassenindizes; überlappende Masken verwenden den späteren Maskenwert.
-- Zoom ändert nur die Anzeigegröße; exportierte Koordinaten bleiben auf die Originalbildgröße normalisiert und sollten vor Forschungseinsatz weiterhin validiert werden.
-- Helligkeits- und Kontraststeuerung sind reine Anzeigevorschauen; exportierte Bilddateien und Annotation-Koordinaten werden nicht verändert.
+- Dieses Tool ist ein experimentelles MVP und nicht fÃ¼r klinische Diagnosen geeignet.
+- Aktuell werden Bounding Boxes und Freihand-Polygonmasken unterstÃ¼tzt.
+- DICOM-UnterstÃ¼tzung ist auf unkomprimierte einkanalige Graustufenbilder beschrÃ¤nkt.
+- Maskenexport schreibt pro Bild eine Graustufen-PNG mit Klassenindizes; Ã¼berlappende Masken verwenden den spÃ¤teren Maskenwert.
+- Zoom Ã¤ndert nur die AnzeigegrÃ¶Ãe; exportierte Koordinaten bleiben auf die OriginalbildgrÃ¶Ãe normalisiert und sollten vor Forschungseinsatz weiterhin validiert werden.
+- Helligkeits- und Kontraststeuerung sind reine Anzeigevorschauen; exportierte Bilddateien und Annotation-Koordinaten werden nicht verÃ¤ndert.
 
 ### Validierung
 
 - Projektdateien werden mit Gson gespeichert und geladen, mit sichtbaren Erfolgs- und Fehlermeldungen.
 - DICOM-Laden wird durch einen generierten unkomprimierten Graustufen-DICOM-Test abgedeckt.
 - Speichern/Laden von Maskenprojekten sowie JSON/PNG-Maskenexport werden durch JUnit-Tests abgedeckt.
-- Der geprüfte Bildstatus wird mit Projektdateien gespeichert und wiederhergestellt.
-- Die Validierung vor dem Export meldet ungeprüfte Bilder, Bilder ohne Annotationen, ungültige Boxen, zugeschnittene Boxen, sehr kleine Boxen, exportierbare Label-Anzahl und unausgewogene Label-Verteilung.
+- Der geprÃ¼fte Bildstatus wird mit Projektdateien gespeichert und wiederhergestellt.
+- Die Validierung vor dem Export meldet ungeprÃ¼fte Bilder, Bilder ohne Annotationen, ungÃ¼ltige Boxen, zugeschnittene Boxen, sehr kleine Boxen, exportierbare Label-Anzahl und unausgewogene Label-Verteilung.
 - YOLO-Export verwendet normalisierte Mittelpunkt-Koordinaten: `x_center`, `y_center`, `width`, `height`.
-- COCO-Export verwendet Pixel-Bounding-Boxes und behält Bilddimensionen für geprüfte leere Bilder: `x`, `y`, `width`, `height`.
+- COCO-Export verwendet Pixel-Bounding-Boxes und behÃ¤lt Bilddimensionen fÃ¼r geprÃ¼fte leere Bilder: `x`, `y`, `width`, `height`.
 - JSON-, YOLO- und COCO-Export verwenden dieselbe Koordinatenbegrenzung vor dem Schreiben.
-- Das Exportverhalten wird durch JUnit-Tests geprüft, inklusive Clipping außerhalb des Bildbereichs, COCO-Ausgabe, Metadaten für leere Bilder und locale-sicherer YOLO-Dezimalzahlen.
-- Bounding Boxes kleiner als 5×5 Pixel werden automatisch verworfen.
+- Das Exportverhalten wird durch JUnit-Tests geprÃ¼ft, inklusive Clipping auÃerhalb des Bildbereichs, COCO-Ausgabe, Metadaten fÃ¼r leere Bilder und locale-sicherer YOLO-Dezimalzahlen.
+- Bounding Boxes kleiner als 5Ã5 Pixel werden automatisch verworfen.
 
 ---
 
-## 한국어
+## íêµ­ì´
 
-### 배경
+### ë°°ê²½
 
-폐암 조기 진단 강의에서 저선량 CT 스크리닝으로 발견된 말초 폐 병변은 기존 기관지내시경으로 생검하기 매우 어렵다는 것을 배웠습니다.
+íì ì¡°ê¸° ì§ë¨ ê°ììì ì ì ë CT ì¤í¬ë¦¬ëì¼ë¡ ë°ê²¬ë ë§ì´ í ë³ë³ì ê¸°ì¡´ ê¸°ê´ì§ë´ìê²½ì¼ë¡ ìê²íê¸° ë§¤ì° ì´ë µë¤ë ê²ì ë°°ì ìµëë¤.
 
-OCT 기반 광학 생검은 방사선 부담이 없는 미래 진단 접근법으로 주목받고 있습니다. CVAT, Label Studio 같은 범용 라벨링 툴은 존재하지만, 폐 OCT 병변 라벨링에 맞춘 가벼운 데스크톱 워크플로우를 실험적으로 구현해보고 싶었습니다. 다만 폐 OCT 영상은 침투 깊이 제한, speckle noise, motion artifact, 해석 기준의 어려움 같은 문제가 있어 항상 선명하고 일관된 데이터로 얻어지지는 않습니다. 이 프로젝트는 이러한 한계 속에서 AI 보조 분석을 위한 첫 단계인 구조화된 annotation workflow를 실험하는 데 초점을 두었습니다.
+OCT ê¸°ë° ê´í ìê²ì ë°©ì¬ì  ë¶ë´ì´ ìë ë¯¸ë ì§ë¨ ì ê·¼ë²ì¼ë¡ ì£¼ëª©ë°ê³  ììµëë¤. CVAT, Label Studio ê°ì ë²ì© ë¼ë²¨ë§ í´ì ì¡´ì¬íì§ë§, í OCT ë³ë³ ë¼ë²¨ë§ì ë§ì¶ ê°ë²¼ì´ ë°ì¤í¬í± ìí¬íë¡ì°ë¥¼ ì¤íì ì¼ë¡ êµ¬íí´ë³´ê³  ì¶ììµëë¤. ë¤ë§ í OCT ììì ì¹¨í¬ ê¹ì´ ì í, speckle noise, motion artifact, í´ì ê¸°ì¤ì ì´ë ¤ì ê°ì ë¬¸ì ê° ìì´ í­ì ì ëªíê³  ì¼ê´ë ë°ì´í°ë¡ ì»ì´ì§ì§ë ììµëë¤. ì´ íë¡ì í¸ë ì´ë¬í íê³ ììì AI ë³´ì¡° ë¶ìì ìí ì²« ë¨ê³ì¸ êµ¬ì¡°íë annotation workflowë¥¼ ì¤ííë ë° ì´ì ì ëììµëë¤.
 
-AI 학습용 데이터셋 구축 과정을 직접 실험해보기 위해 이 툴을 제작했습니다. 현재 일반 이미지 파일, 비압축 grayscale DICOM 미리보기, bounding-box annotation, freehand polygon mask annotation, JSON export, YOLO format export, COCO format export, mask JSON/PNG export, 프로젝트 저장/불러오기, 좌표 검증, 확대 가능한 이미지 검토, 밝기/대비 미리보기, 이미지별 검수 상태 추적, 전체 라벨 통계 확인, export 전 데이터셋 검증 기능을 지원합니다.
+AI íìµì© ë°ì´í°ì êµ¬ì¶ ê³¼ì ì ì§ì  ì¤íí´ë³´ê¸° ìí´ ì´ í´ì ì ìíìµëë¤. íì¬ ì¼ë° ì´ë¯¸ì§ íì¼, ë¹ìì¶ grayscale DICOM ë¯¸ë¦¬ë³´ê¸°, bounding-box annotation, freehand polygon mask annotation, JSON export, YOLO format export, COCO format export, mask JSON/PNG export, íë¡ì í¸ ì ì¥/ë¶ë¬ì¤ê¸°, ì¢í ê²ì¦, íë ê°ë¥í ì´ë¯¸ì§ ê²í , ë°ê¸°/ëë¹ ë¯¸ë¦¬ë³´ê¸°, ì´ë¯¸ì§ë³ ê²ì ìí ì¶ì , ì ì²´ ë¼ë²¨ íµê³ íì¸, export ì  ë°ì´í°ì ê²ì¦ ê¸°ë¥ì ì§ìí©ëë¤.
 
-### 제작한 것
+### ì ìí ê²
 
-폐 OCT 이미지를 라벨링하고, 향후 AI 학습용 데이터셋을 만들기 위한 가벼운 데스크톱 annotation tool입니다.
+í OCT ì´ë¯¸ì§ë¥¼ ë¼ë²¨ë§íê³ , í¥í AI íìµì© ë°ì´í°ìì ë§ë¤ê¸° ìí ê°ë²¼ì´ ë°ì¤í¬í± annotation toolìëë¤.
 
 ![Screenshot](screenshot.png)
 
-### 기능
+### ê¸°ë¥
 
-- 여러 장 이미지 선택 (jpg, jpeg, png, bmp, dcm, dicom, ima)
-- 비압축 8-bit/16-bit grayscale DICOM 이미지 미리보기
-- 마우스 드래그로 bounding box 그리기
-- 기존 bounding box 이동 및 리사이즈
-- mask mode에서 freehand polygon mask 그리기
-- 선택한 bounding box 또는 mask 라벨 변경
-- 툴바 버튼 또는 Ctrl + 마우스 휠로 확대/축소
-- 확대된 이미지는 스크롤바, 트랙패드 스크롤, Alt + 드래그, 중간 버튼 드래그로 이동
-- 원본 이미지를 수정하지 않는 밝기/대비 미리보기 조절
-- 정상 / 의심 / 확실히 암 라벨 선택
-- 단축키: ←/→ 이미지 이동, 1/2/3 라벨 선택
-- 이미지 전환 시 라벨 유지
-- 이미지별 검수 완료 표시 및 전체 데이터셋 진행률/라벨 통계 확인
-- export 전 validation report 확인
-- 우클릭 또는 두 손가락 탭으로 박스 삭제
-- 한국어 / English / Deutsch UI 전환
-- 정규화된 좌표로 JSON export
-- AI 객체탐지 학습용 YOLO format export
-- 객체탐지 데이터셋용 COCO format export
-- segmentation mask를 `masks.json`과 grayscale PNG mask로 export
-- `summary.json`에 통계 저장
-- YOLO 보조 파일 저장: `classes.txt`, `data.yaml`, 원본 이미지가 존재할 경우 `images/` 복사 폴더
-- JSON/YOLO/COCO export 폴더 선택
-- 검수 완료 상태를 포함한 `project.json` 기반 프로젝트 저장/불러오기
-- bounding box가 없는 검수 완료 이미지도 프로젝트와 COCO export에서 이미지 너비/높이 유지
-- 안전한 데이터셋 export를 위한 좌표 clamp
-- 5×5 픽셀보다 작은 bounding box 자동 제외
+- ì¬ë¬ ì¥ ì´ë¯¸ì§ ì í (jpg, jpeg, png, bmp, dcm, dicom, ima)
+- ë¹ìì¶ 8-bit/16-bit grayscale DICOM ì´ë¯¸ì§ ë¯¸ë¦¬ë³´ê¸°
+- ë§ì°ì¤ ëëê·¸ë¡ bounding box ê·¸ë¦¬ê¸°
+- ê¸°ì¡´ bounding box ì´ë ë° ë¦¬ì¬ì´ì¦
+- mask modeìì freehand polygon mask ê·¸ë¦¬ê¸°
+- ì íí bounding box ëë mask ë¼ë²¨ ë³ê²½
+- í´ë° ë²í¼ ëë Ctrl + ë§ì°ì¤ í ë¡ íë/ì¶ì
+- íëë ì´ë¯¸ì§ë ì¤í¬ë¡¤ë°, í¸ëí¨ë ì¤í¬ë¡¤, Alt + ëëê·¸, ì¤ê° ë²í¼ ëëê·¸ë¡ ì´ë
+- ìë³¸ ì´ë¯¸ì§ë¥¼ ìì íì§ ìë ë°ê¸°/ëë¹ ë¯¸ë¦¬ë³´ê¸° ì¡°ì 
+- ì ì / ìì¬ / íì¤í ì ë¼ë²¨ ì í
+- ë¨ì¶í¤: â/â ì´ë¯¸ì§ ì´ë, 1/2/3 ë¼ë²¨ ì í
+- ì´ë¯¸ì§ ì í ì ë¼ë²¨ ì ì§
+- ì´ë¯¸ì§ë³ ê²ì ìë£ íì ë° ì ì²´ ë°ì´í°ì ì§íë¥ /ë¼ë²¨ íµê³ íì¸
+- export ì  validation report íì¸
+- ì°í´ë¦­ ëë ë ìê°ë½ í­ì¼ë¡ ë°ì¤ ì­ì 
+- íêµ­ì´ / English / Deutsch UI ì í
+- ì ê·íë ì¢íë¡ JSON export
+- AI ê°ì²´íì§ íìµì© YOLO format export
+- ê°ì²´íì§ ë°ì´í°ìì© COCO format export
+- segmentation maskë¥¼ `masks.json`ê³¼ grayscale PNG maskë¡ export
+- `summary.json`ì íµê³ ì ì¥
+- YOLO ë³´ì¡° íì¼ ì ì¥: `classes.txt`, `data.yaml`, ìë³¸ ì´ë¯¸ì§ê° ì¡´ì¬í  ê²½ì° `images/` ë³µì¬ í´ë
+- JSON/YOLO/COCO export í´ë ì í
+- ê²ì ìë£ ìíë¥¼ í¬í¨í `project.json` ê¸°ë° íë¡ì í¸ ì ì¥/ë¶ë¬ì¤ê¸°
+- bounding boxê° ìë ê²ì ìë£ ì´ë¯¸ì§ë íë¡ì í¸ì COCO exportìì ì´ë¯¸ì§ ëë¹/ëì´ ì ì§
+- ìì í ë°ì´í°ì exportë¥¼ ìí ì¢í clamp
+- 5Ã5 í½ìë³´ë¤ ìì bounding box ìë ì ì¸
 
-### 기술 스택
+### ê¸°ì  ì¤í
 
 - Java 21
 - JavaFX 21
@@ -492,30 +505,30 @@ AI 학습용 데이터셋 구축 과정을 직접 실험해보기 위해 이 툴
 - dcm4che
 - JUnit
 
-### 실행 방법
+### ì¤í ë°©ë²
 
-#### 요구사항
+#### ìêµ¬ì¬í­
 
 - Java 21
 - JavaFX 21 SDK
 - Maven
 
-#### Maven으로 실행
+#### Mavenì¼ë¡ ì¤í
 
 ```bash
 mvn javafx:run
 ```
 
-#### 실행 가능한 패키지 빌드
+#### ì¤í ê°ë¥í í¨í¤ì§ ë¹ë
 
 ```bash
 mvn package
 java -jar target/oct-labeling-tool-1.0-SNAPSHOT.jar
 ```
 
-`mvn package`는 앱 jar와 실행에 필요한 runtime dependency를 `target/lib`에 함께 복사합니다.
+`mvn package`ë ì± jarì ì¤íì íìí runtime dependencyë¥¼ `target/lib`ì í¨ê» ë³µì¬í©ëë¤.
 
-#### 수동 컴파일
+#### ìë ì»´íì¼
 
 ```bash
 javac --module-path /path/to/javafx/lib --add-modules javafx.controls \
@@ -523,7 +536,7 @@ javac --module-path /path/to/javafx/lib --add-modules javafx.controls \
   src/main/java/com/peanutsmin/octlabeling/*.java
 ```
 
-#### macOS 수동 실행 예시
+#### macOS ìë ì¤í ìì
 
 ```bash
 javac --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.controls \
@@ -534,18 +547,18 @@ java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.contr
   com.peanutsmin.octlabeling.MainApp
 ```
 
-### 사용 흐름
+### ì¬ì© íë¦
 
-1. OCT 이미지 불러오기
-2. 마우스 드래그로 bounding box 그리기
-3. 정상 / 의심 / 확실히 암 라벨 선택
-4. 검수 완료 이미지를 표시하고 전체 데이터셋 진행률 확인
-5. 나중에 이어서 작업할 수 있도록 `project.json`으로 프로젝트 저장
-6. 프로젝트를 다시 열어 annotation을 이어서 수정
-7. export 전 validation report 확인
-8. AI 학습용으로 JSON, YOLO 또는 COCO 형식 export
+1. OCT ì´ë¯¸ì§ ë¶ë¬ì¤ê¸°
+2. ë§ì°ì¤ ëëê·¸ë¡ bounding box ê·¸ë¦¬ê¸°
+3. ì ì / ìì¬ / íì¤í ì ë¼ë²¨ ì í
+4. ê²ì ìë£ ì´ë¯¸ì§ë¥¼ íìíê³  ì ì²´ ë°ì´í°ì ì§íë¥  íì¸
+5. ëì¤ì ì´ì´ì ììí  ì ìëë¡ `project.json`ì¼ë¡ íë¡ì í¸ ì ì¥
+6. íë¡ì í¸ë¥¼ ë¤ì ì´ì´ annotationì ì´ì´ì ìì 
+7. export ì  validation report íì¸
+8. AI íìµì©ì¼ë¡ JSON, YOLO ëë COCO íì export
 
-### Export 예시
+### Export ìì
 
 #### JSON Export
 
@@ -568,7 +581,7 @@ java --module-path ~/javafx-sdk/javafx-sdk-21.0.2/lib --add-modules javafx.contr
 
 #### YOLO Export
 
-YOLO export는 다음과 같은 dataset-style 폴더를 생성합니다:
+YOLO exportë ë¤ìê³¼ ê°ì dataset-style í´ëë¥¼ ìì±í©ëë¤:
 
 ```txt
 labels_yolo/
@@ -581,23 +594,23 @@ data.yaml
 1 0.332500 0.249700 0.180000 0.120000
 ```
 
-YOLO 형식:
+YOLO íì:
 
 ```txt
 class_id x_center y_center width height
 ```
 
-클래스 매핑:
+í´ëì¤ ë§¤í:
 
 ```txt
-0 = 정상
-1 = 의심
-2 = 확실히 암
+0 = ì ì
+1 = ìì¬
+2 = íì¤í ì
 ```
 
 #### COCO Export
 
-COCO export는 `images`, `annotations`, `categories` 배열을 포함한 `coco_annotations.json`을 생성합니다:
+COCO exportë `images`, `annotations`, `categories` ë°°ì´ì í¬í¨í `coco_annotations.json`ì ìì±í©ëë¤:
 
 ```json
 {
@@ -622,35 +635,35 @@ COCO export는 `images`, `annotations`, `categories` 배열을 포함한 `coco_a
 }
 ```
 
-#### 라벨 스키마
+#### ë¼ë²¨ ì¤í¤ë§
 
-JSON export는 UI 언어와 무관한 고정 라벨 값을 사용합니다:
+JSON exportë UI ì¸ì´ì ë¬´ê´í ê³ ì  ë¼ë²¨ ê°ì ì¬ì©í©ëë¤:
 
 ```txt
-normal = 정상
-suspicious = 의심
-confirmed_cancer = 확실히 암
+normal = ì ì
+suspicious = ìì¬
+confirmed_cancer = íì¤í ì
 ```
 
-### 한계 및 주의사항
+### íê³ ë° ì£¼ìì¬í­
 
-- 이 툴은 실험적 MVP이며 임상 진단 목적으로 사용할 수 없습니다.
-- 현재 bounding box와 freehand polygon mask annotation을 지원합니다.
-- DICOM 지원은 비압축 single-channel grayscale 이미지로 제한됩니다.
-- mask export는 이미지별 grayscale class-index PNG를 생성하며, 겹치는 mask는 나중에 그린 mask 값이 우선합니다.
-- Zoom은 화면 표시 배율만 바꾸며, export 좌표는 원본 이미지 크기 기준으로 정규화됩니다. 연구용으로 사용하기 전에는 여전히 검증이 필요합니다.
-- 밝기/대비 조절은 화면 표시용 미리보기이며, export 이미지 파일과 annotation 좌표는 변경하지 않습니다.
+- ì´ í´ì ì¤íì  MVPì´ë©° ìì ì§ë¨ ëª©ì ì¼ë¡ ì¬ì©í  ì ììµëë¤.
+- íì¬ bounding boxì freehand polygon mask annotationì ì§ìí©ëë¤.
+- DICOM ì§ìì ë¹ìì¶ single-channel grayscale ì´ë¯¸ì§ë¡ ì íë©ëë¤.
+- mask exportë ì´ë¯¸ì§ë³ grayscale class-index PNGë¥¼ ìì±íë©°, ê²¹ì¹ë maskë ëì¤ì ê·¸ë¦° mask ê°ì´ ì°ì í©ëë¤.
+- Zoomì íë©´ íì ë°°ì¨ë§ ë°ê¾¸ë©°, export ì¢íë ìë³¸ ì´ë¯¸ì§ í¬ê¸° ê¸°ì¤ì¼ë¡ ì ê·íë©ëë¤. ì°êµ¬ì©ì¼ë¡ ì¬ì©íê¸° ì ìë ì¬ì í ê²ì¦ì´ íìí©ëë¤.
+- ë°ê¸°/ëë¹ ì¡°ì ì íë©´ íìì© ë¯¸ë¦¬ë³´ê¸°ì´ë©°, export ì´ë¯¸ì§ íì¼ê³¼ annotation ì¢íë ë³ê²½íì§ ììµëë¤.
 
-### 검증
+### ê²ì¦
 
-- 프로젝트 파일은 Gson으로 저장하고 불러오며, 성공/실패를 UI Alert로 표시합니다.
-- DICOM 로딩은 테스트에서 생성한 비압축 grayscale DICOM fixture로 검증합니다.
-- mask project 저장/불러오기와 JSON/PNG mask export는 JUnit 테스트로 검증합니다.
-- 이미지별 검수 완료 상태는 project 파일에 저장되고 다시 불러올 수 있습니다.
-- 상태바에서 전체 이미지 수, 검수 완료 이미지 수, 라벨별 전체 개수를 확인할 수 있습니다.
-- export 전 검증은 미검수 이미지, annotation 없는 이미지, 유효하지 않은 박스, 이미지 경계에서 잘리는 박스, 5x5 픽셀보다 작은 박스, export 가능한 라벨 수, 한쪽으로 치우친 라벨 분포를 알려줍니다.
-- YOLO export는 정규화된 중심 좌표를 사용합니다: `x_center`, `y_center`, `width`, `height`.
-- COCO export는 픽셀 bounding box를 사용하며, bounding box가 없는 검수 이미지의 이미지 크기도 유지합니다: `x`, `y`, `width`, `height`.
-- JSON, YOLO, COCO export는 같은 좌표 clamp 로직을 공유합니다.
-- out-of-bounds box clipping, COCO 출력, 빈 이미지 메타데이터, locale-safe YOLO 소수점 출력은 JUnit 테스트로 검증합니다.
-- 5×5 픽셀보다 작은 bounding box는 자동으로 제외됩니다.
+- íë¡ì í¸ íì¼ì Gsonì¼ë¡ ì ì¥íê³  ë¶ë¬ì¤ë©°, ì±ê³µ/ì¤í¨ë¥¼ UI Alertë¡ íìí©ëë¤.
+- DICOM ë¡ë©ì íì¤í¸ìì ìì±í ë¹ìì¶ grayscale DICOM fixtureë¡ ê²ì¦í©ëë¤.
+- mask project ì ì¥/ë¶ë¬ì¤ê¸°ì JSON/PNG mask exportë JUnit íì¤í¸ë¡ ê²ì¦í©ëë¤.
+- ì´ë¯¸ì§ë³ ê²ì ìë£ ìíë project íì¼ì ì ì¥ëê³  ë¤ì ë¶ë¬ì¬ ì ììµëë¤.
+- ìíë°ìì ì ì²´ ì´ë¯¸ì§ ì, ê²ì ìë£ ì´ë¯¸ì§ ì, ë¼ë²¨ë³ ì ì²´ ê°ìë¥¼ íì¸í  ì ììµëë¤.
+- export ì  ê²ì¦ì ë¯¸ê²ì ì´ë¯¸ì§, annotation ìë ì´ë¯¸ì§, ì í¨íì§ ìì ë°ì¤, ì´ë¯¸ì§ ê²½ê³ìì ìë¦¬ë ë°ì¤, 5x5 í½ìë³´ë¤ ìì ë°ì¤, export ê°ë¥í ë¼ë²¨ ì, íìª½ì¼ë¡ ì¹ì°ì¹ ë¼ë²¨ ë¶í¬ë¥¼ ìë ¤ì¤ëë¤.
+- YOLO exportë ì ê·íë ì¤ì¬ ì¢íë¥¼ ì¬ì©í©ëë¤: `x_center`, `y_center`, `width`, `height`.
+- COCO exportë í½ì bounding boxë¥¼ ì¬ì©íë©°, bounding boxê° ìë ê²ì ì´ë¯¸ì§ì ì´ë¯¸ì§ í¬ê¸°ë ì ì§í©ëë¤: `x`, `y`, `width`, `height`.
+- JSON, YOLO, COCO exportë ê°ì ì¢í clamp ë¡ì§ì ê³µì í©ëë¤.
+- out-of-bounds box clipping, COCO ì¶ë ¥, ë¹ ì´ë¯¸ì§ ë©íë°ì´í°, locale-safe YOLO ììì  ì¶ë ¥ì JUnit íì¤í¸ë¡ ê²ì¦í©ëë¤.
+- 5Ã5 í½ìë³´ë¤ ìì bounding boxë ìëì¼ë¡ ì ì¸ë©ëë¤.

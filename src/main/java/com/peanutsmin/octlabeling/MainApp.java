@@ -3,13 +3,19 @@ package com.peanutsmin.octlabeling;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.image.Image;
-import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Slider;
+import javafx.scene.shape.Polygon;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
+import javafx.scene.paint.Color;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
+import javafx.geometry.Bounds;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -109,7 +115,7 @@ public class MainApp extends Application {
             }
             @Override public void onReviewedChanged(boolean reviewed) {
                 File f = currentImageFile();
-                if (f != null) { store.setReviewed(f, reviewed); updateStats(); }
+                if (f != null) { store.setReviewed(f.getAbsolutePath(), reviewed); updateStats(); }
             }
             @Override public void onApplyLabel() {
                 LabelClass label = LabelClass.fromDisplay(toolbarBuilder.labelBox.getValue());
@@ -119,20 +125,48 @@ public class MainApp extends Application {
             }
             @Override public void onZoomIn()  { changeZoom( ImageCanvas.ZOOM_STEP); }
             @Override public void onZoomOut() { changeZoom(-ImageCanvas.ZOOM_STEP); }
-            @Override public void onZoomReset() { canvas.setZoom(1.0); updateZoomLabel(); }
+            @Override public void onZoomReset() {
+                canvas.resetZoom();
+                renderAnnotations();
+                updateZoomLabel();
+            }
             @Override public void onBrightnessChanged(double v) { canvas.setBrightness(v); }
             @Override public void onContrastChanged(double v)   { canvas.setContrast(v); }
             @Override public void onResetAdjustments() { resetImageAdjustments(); }
             @Override public void onLanguageChanged(String lang) {
-                i18n.setLanguage(lang); store.saveCurrent();
+                i18n.setLang(lang); store.saveCurrent();
                 mainStage.close();
                 try { new MainApp().start(new Stage()); } catch (Exception ex) { ex.printStackTrace(); }
             }
             @Override public void onSaveProject() {
-                File dir = chooseDirectory(i18n.t("프로젝트 저장 폴더 선택", "Choose project folder", "Projektordner wählen"));
-                if (dir != null) { store.saveCurrent(); ProjectService.saveProject(store, imageFiles, dir, dialogs, i18n); }
+                FileChooser fc = new FileChooser();
+                fc.setTitle(i18n.t("프로젝트 저장", "Save Project", "Projekt speichern"));
+                fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON", "*.json"));
+                fc.setInitialFileName("project.json");
+                File file = fc.showSaveDialog(mainStage);
+                if (file != null) {
+                    dialogs.showProjectResult(
+                            i18n.t("프로젝트 저장", "Save Project", "Projekt speichern"),
+                            ProjectService.saveProject(store, file.getAbsolutePath(), "oct_project")
+                    );
+                }
             }
-            @Override public void onLoadProject() { loadProjectImages(); }
+            @Override public void onLoadProject() {
+                FileChooser fc = new FileChooser();
+                fc.setTitle(i18n.t("project.json 선택", "Choose project.json", "project.json auswählen"));
+                fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON", "*.json"));
+                File file = fc.showOpenDialog(mainStage);
+                if (file != null) {
+                    ProjectService.ProjectResult result = ProjectService.loadProject(store, file.getAbsolutePath());
+                    dialogs.showProjectResult(
+                            i18n.t("프로젝트 열기", "Open Project", "Projekt öffnen"),
+                            result
+                    );
+                    if (result.isSuccess()) {
+                        loadProjectImages();
+                    }
+                }
+            }
             @Override public void onExportJson() {
                 runExportWithValidation(
                     i18n.t("JSON 내보내기", "JSON Export", "JSON Export"),
@@ -151,10 +185,16 @@ public class MainApp extends Application {
                     i18n.t("COCO 내보낼 폴더 선택", "Choose COCO export folder", "COCO-Exportordner wählen"),
                     dir -> ExportService.exportCoco(store, dir));
             }
+            @Override public void onExportMasks() {
+                runExportWithValidation(
+                    i18n.t("마스크 내보내기", "Mask Export", "Masken Export"),
+                    i18n.t("마스크 내보낼 폴더 선택", "Choose mask export folder", "Masken-Exportordner wählen"),
+                    dir -> ExportService.exportMasks(store, dir));
+            }
             @Override public void onValidate() {
                 store.saveCurrent();
-                DatasetValidationReport report = DatasetValidationReport.generate(store);
-                dialogs.showValidationReport(report);
+                DatasetValidationReport report = DatasetValidationReport.fromStore(store);
+                dialogs.confirmValidationReport(i18n.t("검증", "Validation", "Validierung"), report);
             }
         });
         root.setTop(toolbarBuilder.build());
@@ -196,11 +236,11 @@ public class MainApp extends Application {
 
         canvas.clearBoxes();
         canvasController.resetSelection();
-        toolbarBuilder.fileLabel.setText(i18n.t("ì´ë¯¸ì§ ìì", "No image", "Kein Bild"));
+        toolbarBuilder.fileLabel.setText(i18n.t("이미지 없음", "No image", "Kein Bild"));
         toolbarBuilder.progressLabel.setText(i18n.t(
-                "íë¡ì í¸ë¥¼ ì´ìì§ë§ ì´ë¯¸ì§ íì¼ì ì°¾ì ì ììµëë¤.",
+                "프로젝트를 열었지만 이미지 파일을 찾을 수 없습니다.",
                 "Project opened, but referenced image files were not found.",
-                "Projekt geÃ¶ffnet, aber referenzierte Bilddateien wurden nicht gefunden."
+                "Projekt geöffnet, aber referenzierte Bilddateien wurden nicht gefunden."
         ));
     }
 
@@ -228,10 +268,10 @@ public class MainApp extends Application {
         int maskCount = store.getCurrentMasks().size();
         if (!imageFiles.isEmpty()) {
             toolbarBuilder.progressLabel.setText((currentIndex + 1) + " / " + imageFiles.size() +
-                    "   " + i18n.t("ì ì: ", "Normal: ", "Normal: ") + n +
-                    "  " + i18n.t("ìì¬: ", "Suspicious: ", "VerdÃ¤chtig: ") + s +
-                    "  " + i18n.t("íì¤í ì: ", "Cancer: ", "Krebs: ") + c +
-                    "  " + i18n.t("ë§ì¤í¬: ", "Masks: ", "Masken: ") + maskCount);
+                    "   " + i18n.t("정상: ", "Normal: ", "Normal: ") + n +
+                    "  " + i18n.t("의심: ", "Suspicious: ", "Verdächtig: ") + s +
+                    "  " + i18n.t("확실히 암: ", "Cancer: ", "Krebs: ") + c +
+                    "  " + i18n.t("마스크: ", "Masks: ", "Masken: ") + maskCount);
         }
         updateOverviewStats();
     }
@@ -251,13 +291,13 @@ public class MainApp extends Application {
         }
 
         if (toolbarBuilder.overviewLabel != null) {
-            toolbarBuilder.overviewLabel.setText(i18n.t("ì ì²´: ", "Overall: ", "Gesamt: ") +
-                    store.getAll().size() + i18n.t(" ì´ë¯¸ì§", " images", " Bilder") +
-                    " / " + store.reviewedCount() + i18n.t(" ê²ì", " reviewed", " geprÃ¼ft") +
-                    " / " + store.totalMaskCount() + i18n.t(" ë§ì¤í¬", " masks", " Masken") +
-                    "   " + i18n.t("ì ì: ", "Normal: ", "Normal: ") + totalNormal +
-                    "  " + i18n.t("ìì¬: ", "Suspicious: ", "VerdÃ¤chtig: ") + totalSuspicious +
-                    "  " + i18n.t("ì: ", "Cancer: ", "Krebs: ") + totalCancer);
+            toolbarBuilder.overviewLabel.setText(i18n.t("전체: ", "Overall: ", "Gesamt: ") +
+                    store.getAll().size() + i18n.t(" 이미지", " images", " Bilder") +
+                    " / " + store.reviewedCount() + i18n.t(" 검수", " reviewed", " geprüft") +
+                    " / " + store.totalMaskCount() + i18n.t(" 마스크", " masks", " Masken") +
+                    "   " + i18n.t("정상: ", "Normal: ", "Normal: ") + totalNormal +
+                    "  " + i18n.t("의심: ", "Suspicious: ", "Verdächtig: ") + totalSuspicious +
+                    "  " + i18n.t("암: ", "Cancer: ", "Krebs: ") + totalCancer);
         }
         for (MaskAnnotation mask : store.getCurrentMasks()) {
             Polygon polygon = AnnotationGeometry.polygonFromMask(mask, canvas);
@@ -381,9 +421,9 @@ public class MainApp extends Application {
             return new Image(file.toURI().toString());
         } catch (Exception e) {
             toolbarBuilder.progressLabel.setText(i18n.t(
-                    "ì´ë¯¸ì§ë¥¼ ì´ ì ììµëë¤: ",
+                    "이미지를 열 수 없습니다: ",
                     "Could not open image: ",
-                    "Bild konnte nicht geÃ¶ffnet werden: "
+                    "Bild konnte nicht geöffnet werden: "
             ) + e.getMessage());
             return new Image(file.toURI().toString());
         }

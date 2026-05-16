@@ -36,6 +36,7 @@ public class ToolbarBuilder {
         void onExportJson();
         void onExportYolo();
         void onExportCoco();
+        void onExportMasks();
         void onValidate();
     }
 
@@ -160,8 +161,11 @@ public class ToolbarBuilder {
         exportYoloBtn.setOnAction(e -> cb.onExportYolo());
         Button exportCocoBtn = new Button("COCO Export");
         exportCocoBtn.setOnAction(e -> cb.onExportCoco());
+        Button exportMasksBtn = new Button(
+            i18n.t("\uB9C8\uC2A4\uD06C \uB0B4\uBCF4\uB0B4\uAE30", "Mask Export", "Masken Export"));
+        exportMasksBtn.setOnAction(e -> cb.onExportMasks());
         HBox bar = new HBox(8, saveBtn, loadBtn, validateBtn,
-            exportJsonBtn, exportYoloBtn, exportCocoBtn);
+            exportJsonBtn, exportYoloBtn, exportCocoBtn, exportMasksBtn);
         AppStyle.applyToolbar(bar);
         return bar;
     }
